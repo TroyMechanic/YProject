@@ -1,0 +1,12 @@
+.DS_Store
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+node_modules/
+dist/
+*.tsbuildinfo
+backend/app/data/raw/*.csv
+backend/app/data/analyzed/*.csv
+!backend/app/data/raw/.gitkeep
+!backend/app/data/analyzed/.gitkeep
