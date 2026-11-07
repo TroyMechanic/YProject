@@ -1,0 +1,249 @@
+{
+  "002156.SZ": {
+    "sameInput": true,
+    "before": {
+      "runId": "e7172533-4ccb-4d7b-99f6-5affd7a175f3",
+      "inputHash": "e0db59417a165a6927df1aca3fae543fdb4010541aa2ac158fb9cc11a79c9a14",
+      "sourceCount": 1008,
+      "segmentCount": 2,
+      "confirmedSegments": 1
+    },
+    "after": {
+      "runId": "97c49d93-d707-48ad-9de3-2c8c8f681987",
+      "inputHash": "e0db59417a165a6927df1aca3fae543fdb4010541aa2ac158fb9cc11a79c9a14",
+      "version": "4.1.0",
+      "bis": 75,
+      "segments": 11,
+      "confirmedSegments": 10,
+      "layers": [
+        {
+          "level": 0,
+          "movements": 11,
+          "confirmed": 10,
+          "zones": 2,
+          "points": 1
+        },
+        {
+          "level": 1,
+          "movements": 2,
+          "confirmed": 1,
+          "zones": 0,
+          "points": 0
+        }
+      ],
+      "points": [
+        {
+          "type": "S3",
+          "time": "2026-09-15 10:35:00",
+          "observedAt": "2026-09-16 10:10:00"
+        }
+      ],
+      "observations": [
+        {
+          "type": "S3",
+          "time": "2026-09-02 10:30:00",
+          "observedAt": "2026-09-02 11:15:00",
+          "confirmed": true
+        },
+        {
+          "type": "S3",
+          "time": "2026-09-07 10:20:00",
+          "observedAt": "2026-09-07 10:40:00",
+          "confirmed": true
+        },
+        {
+          "type": "S3",
+          "time": "2026-09-15 14:00:00",
+          "observedAt": "2026-09-15 14:50:00",
+          "confirmed": true
+        },
+        {
+          "type": "S3",
+          "time": "2026-09-17 13:35:00",
+          "observedAt": "2026-09-17 14:30:00",
+          "confirmed": true
+        },
+        {
+          "type": "S3",
+          "time": "2026-09-28 13:15:00",
+          "observedAt": "2026-09-28 13:55:00",
+          "confirmed": true
+        },
+        {
+          "type": "B3",
+          "time": "2026-09-29 10:10:00",
+          "observedAt": "2026-09-29 10:30:00",
+          "confirmed": true
+        },
+        {
+          "type": "S3",
+          "time": "2026-09-30 10:55:00",
+          "observedAt": "2026-09-30 11:25:00",
+          "confirmed": true
+        }
+      ]
+    }
+  },
+  "002475.SZ": {
+    "sameInput": true,
+    "before": {
+      "runId": "acd0c5c3-9bb7-4761-85ec-0a96b6872fa0",
+      "inputHash": "5a61627e82f5bbda5d87d9258ea8161843cc1b1a9aa2a389e7a112ebc4f2e86b",
+      "sourceCount": 1008,
+      "segmentCount": 14,
+      "confirmedSegments": 13
+    },
+    "after": {
+      "runId": "d1c711a2-2ae1-48f8-8ad2-5eef5fc2e8c1",
+      "inputHash": "5a61627e82f5bbda5d87d9258ea8161843cc1b1a9aa2a389e7a112ebc4f2e86b",
+      "version": "4.1.0",
+      "bis": 87,
+      "segments": 15,
+      "confirmedSegments": 14,
+      "layers": [
+        {
+          "level": 0,
+          "movements": 15,
+          "confirmed": 14,
+          "zones": 3,
+          "points": 2
+        },
+        {
+          "level": 1,
+          "movements": 1,
+          "confirmed": 0,
+          "zones": 0,
+          "points": 0
+        }
+      ],
+      "points": [
+        {
+          "type": "S3",
+          "time": "2026-09-16 11:30:00",
+          "observedAt": "2026-09-21 15:00:00"
+        },
+        {
+          "type": "S3",
+          "time": "2026-09-29 09:55:00",
+          "observedAt": "2026-09-29 13:10:00"
+        }
+      ],
+      "observations": [
+        {
+          "type": "S3",
+          "time": "2026-09-03 11:30:00",
+          "observedAt": "2026-09-03 13:40:00",
+          "confirmed": true
+        },
+        {
+          "type": "S3",
+          "time": "2026-09-04 13:25:00",
+          "observedAt": "2026-09-04 14:35:00",
+          "confirmed": true
+        },
+        {
+          "type": "B3",
+          "time": "2026-09-09 10:35:00",
+          "observedAt": "2026-09-09 10:55:00",
+          "confirmed": true
+        },
+        {
+          "type": "S3",
+          "time": "2026-09-10 10:45:00",
+          "observedAt": "2026-09-10 11:20:00",
+          "confirmed": true
+        },
+        {
+          "type": "B1",
+          "time": "2026-09-11 11:00:00",
+          "observedAt": "2026-09-11 14:30:00",
+          "confirmed": true
+        },
+        {
+          "type": "S3",
+          "time": "2026-09-15 10:05:00",
+          "observedAt": "2026-09-15 10:30:00",
+          "confirmed": true
+        },
+        {
+          "type": "B3",
+          "time": "2026-09-17 09:35:00",
+          "observedAt": "2026-09-17 09:55:00",
+          "confirmed": true
+        },
+        {
+          "type": "B3",
+          "time": "2026-09-18 13:55:00",
+          "observedAt": "2026-09-18 14:25:00",
+          "confirmed": true
+        },
+        {
+          "type": "S1",
+          "time": "2026-09-22 10:05:00",
+          "observedAt": "2026-09-22 10:30:00",
+          "confirmed": true
+        },
+        {
+          "type": "B3",
+          "time": "2026-09-22 10:20:00",
+          "observedAt": "2026-09-22 11:00:00",
+          "confirmed": true
+        },
+        {
+          "type": "S1",
+          "time": "2026-09-22 10:50:00",
+          "observedAt": "2026-09-22 11:20:00",
+          "confirmed": true
+        },
+        {
+          "type": "S2",
+          "time": "2026-09-22 14:00:00",
+          "observedAt": "2026-09-22 14:30:00",
+          "confirmed": true
+        },
+        {
+          "type": "S3",
+          "time": "2026-09-23 11:10:00",
+          "observedAt": "2026-09-23 13:10:00",
+          "confirmed": true
+        },
+        {
+          "type": "S3",
+          "time": "2026-09-28 13:05:00",
+          "observedAt": "2026-09-28 13:40:00",
+          "confirmed": true
+        },
+        {
+          "type": "B1",
+          "time": "2026-09-28 13:25:00",
+          "observedAt": "2026-09-28 14:30:00",
+          "confirmed": true
+        },
+        {
+          "type": "B2",
+          "time": "2026-09-29 09:35:00",
+          "observedAt": "2026-09-29 10:05:00",
+          "confirmed": true
+        },
+        {
+          "type": "B1",
+          "time": "2026-09-30 13:20:00",
+          "observedAt": "2026-09-30 13:50:00",
+          "confirmed": true
+        },
+        {
+          "type": "B2",
+          "time": "2026-09-30 14:25:00",
+          "observedAt": "2026-09-30 14:55:00",
+          "confirmed": true
+        },
+        {
+          "type": "S3",
+          "time": "2026-09-30 14:45:00",
+          "observedAt": "2026-09-30 15:00:00",
+          "confirmed": false
+        }
+      ]
+    }
+  }
+}

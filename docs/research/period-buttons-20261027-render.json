@@ -1,0 +1,170 @@
+{
+  "stages": [
+    {
+      "stage": "daily-button-to-30m",
+      "period": "minute30",
+      "count": 116,
+      "range": {
+        "from": 1787133600,
+        "to": 1792060200
+      },
+      "pixelDelta": 0
+    },
+    {
+      "stage": "daily-button-to-30m-density",
+      "spacing": 11.962962962962964
+    },
+    {
+      "stage": "visible-center-retained",
+      "x": 645,
+      "width": 1292
+    },
+    {
+      "stage": "first-wheel-stays-on-chosen-period"
+    },
+    {
+      "stage": "same-period-resets-zoom",
+      "period": "minute30",
+      "count": 116,
+      "range": {
+        "from": 1787133600,
+        "to": 1791977400
+      },
+      "pixelDelta": 0
+    },
+    {
+      "stage": "same-period-resets-zoom-density",
+      "spacing": 11.962962962962964
+    },
+    {
+      "stage": "button-minute1",
+      "period": "minute1",
+      "count": 398,
+      "range": {
+        "from": 1787915460,
+        "to": 1787926680
+      },
+      "pixelDelta": 0
+    },
+    {
+      "stage": "button-minute1-density",
+      "spacing": 11.962962962962964
+    },
+    {
+      "stage": "button-minute5",
+      "period": "minute5",
+      "count": 1340,
+      "range": {
+        "from": 1791988500,
+        "to": 1792161600
+      },
+      "pixelDelta": 0
+    },
+    {
+      "stage": "button-minute5-density",
+      "spacing": 11.962962962962964
+    },
+    {
+      "stage": "button-minute60",
+      "period": "minute60",
+      "count": 30,
+      "range": {
+        "from": 1787135400,
+        "to": 1787916600
+      },
+      "pixelDelta": 0
+    },
+    {
+      "stage": "button-minute60-density",
+      "spacing": 23.925925925925927
+    },
+    {
+      "stage": "button-hour4",
+      "period": "hour4",
+      "count": 80,
+      "range": {
+        "from": 1782226800,
+        "to": 1787929200
+      },
+      "pixelDelta": 0
+    },
+    {
+      "stage": "button-hour4-density",
+      "spacing": 15.380952380952381
+    },
+    {
+      "stage": "button-daily",
+      "period": "daily",
+      "count": 1636,
+      "range": {
+        "from": "2026-06-04",
+        "to": "2026-09-30"
+      },
+      "pixelDelta": 0
+    },
+    {
+      "stage": "button-daily-density",
+      "spacing": 11.962962962962964
+    },
+    {
+      "stage": "button-weekly",
+      "period": "weekly",
+      "count": 346,
+      "range": {
+        "from": "2025-08-01",
+        "to": "2026-09-29"
+      },
+      "pixelDelta": 0
+    },
+    {
+      "stage": "button-weekly-density",
+      "spacing": 11.962962962962964
+    },
+    {
+      "stage": "button-monthly",
+      "period": "monthly",
+      "count": 81,
+      "range": {
+        "from": "2023-02-28",
+        "to": "2026-09-29"
+      },
+      "pixelDelta": 0
+    },
+    {
+      "stage": "button-monthly-density",
+      "spacing": 15.2
+    },
+    {
+      "stage": "button-failure-keeps-chart"
+    },
+    {
+      "stage": "narrow-screen-adapts",
+      "period": "daily",
+      "count": 1636,
+      "range": {
+        "from": "2026-08-21",
+        "to": "2026-09-30"
+      },
+      "pixelDelta": 0
+    },
+    {
+      "stage": "narrow-screen-adapts-density",
+      "spacing": 11.88888888888889
+    }
+  ],
+  "errors": [],
+  "requests": [
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?startDate=2023-01-01&period=daily",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?startDate=2023-01-01&period=daily",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?period=minute30&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?period=minute30&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?period=minute1&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?period=minute5&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?period=minute60&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?period=hour4&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?period=daily&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?period=weekly&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?period=monthly&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?period=daily&basePeriod=minute5&maxLevel=4"
+  ]
+}

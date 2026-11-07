@@ -7,7 +7,7 @@ from tempfile import NamedTemporaryFile
 
 import pandas as pd
 
-from app.models.schemas import Bi, CentralZone, Fractal, Kline, KlinePeriod, Segment
+from app.models.schemas import Bi, CentralZone, ChartResponse, Fractal, Kline, KlinePeriod, Segment
 from app.services.market_data_service import is_intraday_period
 
 
@@ -26,9 +26,76 @@ def safe_period(period: KlinePeriod | str) -> str:
 
 
 class CsvStore:
-    def __init__(self) -> None:
-        RAW_DIR.mkdir(parents=True, exist_ok=True)
-        ANALYZED_DIR.mkdir(parents=True, exist_ok=True)
+    def __init__(self, raw_dir: Path = RAW_DIR, analyzed_dir: Path = ANALYZED_DIR) -> None:
+        self.raw_dir = raw_dir
+        self.analyzed_dir = analyzed_dir
+        self.raw_dir.mkdir(parents=True, exist_ok=True)
+        self.analyzed_dir.mkdir(parents=True, exist_ok=True)
+
+    def load_analysis(self, symbol: str, period: KlinePeriod) -> ChartResponse | None:
+        payload = self.load_analysis_payload(symbol, period)
+        return ChartResponse.model_validate_json(json.dumps(payload)) if payload is not None else None
+
+    def load_analysis_payload(self, symbol: str, period: KlinePeriod) -> dict | None:
+        path = self._analysis_path(symbol, period)
+        if not path.exists():
+            return None
+        return json.loads(path.read_text())
+
+    def save_analysis(self, chart: ChartResponse) -> None:
+        # CSVs remain human-readable exports. API reads one atomic committed bundle.
+        self.save_fractals(chart.symbol, chart.period, chart.fractals)
+        self.save_bis(chart.symbol, chart.period, chart.bis)
+        self.save_segments(chart.symbol, chart.period, chart.segments)
+        self.save_central_zones(chart.symbol, chart.period, chart.central_zones)
+        self.save_research(chart)
+        path = self._analysis_path(chart.symbol, chart.period)
+        archive = self.analyzed_dir / "runs" / f"{safe_symbol(chart.symbol)}_{safe_period(chart.period)}"
+        archive.mkdir(parents=True, exist_ok=True)
+        # Unique run IDs preserve prior inputs, outputs and rule catalog for manual comparison.
+        archive_path = archive / f"{chart.analysis.run_id}.json"
+        payload = chart.model_dump_json(by_alias=True, indent=2)
+        self._atomic_text(archive_path, payload)
+        self._atomic_text(path, payload)
+
+    @staticmethod
+    def _atomic_text(path: Path, payload: str) -> None:
+        with NamedTemporaryFile("w", encoding="utf-8", delete=False, dir=path.parent, suffix=".tmp") as tmp:
+            tmp_path = Path(tmp.name)
+            try:
+                tmp.write(payload)
+            except BaseException:
+                tmp_path.unlink(missing_ok=True)
+                raise
+        try:
+            tmp_path.replace(path)
+        finally:
+            tmp_path.unlink(missing_ok=True)
+
+    def _analysis_path(self, symbol: str, period: KlinePeriod) -> Path:
+        return self.analyzed_dir / f"{safe_symbol(symbol)}_{safe_period(period)}_analysis.json"
+
+    def save_research(self, chart: ChartResponse) -> None:
+        prefix=f"{safe_symbol(chart.symbol)}_{safe_period(chart.period)}"
+        collections={"indicators":chart.indicators,"signal_zones":chart.signal_zones,
+                     "divergences":chart.divergences,"trading_points":chart.trading_points,
+                     "zone_relations":chart.zone_relations}
+        for name,collection in collections.items():
+            rows=[]
+            for item in collection:
+                values=item.model_dump(mode="json",by_alias=True)
+                rows.append({key:json.dumps(value,ensure_ascii=False) if isinstance(value,(dict,list)) else value
+                             for key,value in values.items()})
+            self._atomic_write(self.analyzed_dir/f"{prefix}_{name}.csv",pd.DataFrame(rows))
+        rows=[]
+        for level,collection in (("bi",chart.bis),("segment",chart.segments)):
+            rows.extend({"level":level,"index":index,"startTime":item.start_time,"endTime":item.end_time,
+                         **item.momentum.model_dump(by_alias=True)}
+                        for index,item in enumerate(collection) if item.momentum is not None)
+        self._atomic_write(self.analyzed_dir/f"{prefix}_momentum.csv",pd.DataFrame(rows))
+        rows=[{"time":f.time,"type":f.type.value,"grade":f.strength.grade,
+               "reasons":json.dumps(f.strength.reasons,ensure_ascii=False)} for f in chart.fractals if f.strength]
+        self._atomic_write(self.analyzed_dir/f"{prefix}_fractal_strength.csv",pd.DataFrame(rows))
 
     def load_klines(
         self,
@@ -363,23 +430,23 @@ class CsvStore:
         ]
 
     def _kline_path(self, symbol: str, period: KlinePeriod) -> Path:
-        return RAW_DIR / f"{safe_symbol(symbol)}_{safe_period(period)}.csv"
+        return self.raw_dir / f"{safe_symbol(symbol)}_{safe_period(period)}.csv"
 
     def _fractal_path(self, symbol: str, period: KlinePeriod) -> Path:
         suffix = "" if period == KlinePeriod.DAILY else f"_{safe_period(period)}"
-        return ANALYZED_DIR / f"{safe_symbol(symbol)}{suffix}_fractals.csv"
+        return self.analyzed_dir / f"{safe_symbol(symbol)}{suffix}_fractals.csv"
 
     def _bi_path(self, symbol: str, period: KlinePeriod) -> Path:
         suffix = "" if period == KlinePeriod.DAILY else f"_{safe_period(period)}"
-        return ANALYZED_DIR / f"{safe_symbol(symbol)}{suffix}_bis.csv"
+        return self.analyzed_dir / f"{safe_symbol(symbol)}{suffix}_bis.csv"
 
     def _segment_path(self, symbol: str, period: KlinePeriod) -> Path:
         suffix = "" if period == KlinePeriod.DAILY else f"_{safe_period(period)}"
-        return ANALYZED_DIR / f"{safe_symbol(symbol)}{suffix}_segments.csv"
+        return self.analyzed_dir / f"{safe_symbol(symbol)}{suffix}_segments.csv"
 
     def _central_zone_path(self, symbol: str, period: KlinePeriod) -> Path:
         suffix = "" if period == KlinePeriod.DAILY else f"_{safe_period(period)}"
-        return ANALYZED_DIR / f"{safe_symbol(symbol)}{suffix}_central_zones.csv"
+        return self.analyzed_dir / f"{safe_symbol(symbol)}{suffix}_central_zones.csv"
 
     @staticmethod
     def _filter_date_range(df: pd.DataFrame, start_date: date | None, end_date: date | None) -> pd.DataFrame:

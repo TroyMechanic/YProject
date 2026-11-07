@@ -1,6 +1,6 @@
 # Chan Stock
 
-React + FastAPI + CSV 的缠论日 K 分析 MVP。
+React + FastAPI + CSV 的多周期缠论分析 MVP，支持版本化规则方案与完整计算溯源。
 
 ## 功能
 
@@ -175,3 +175,28 @@ PYTHONPATH=. pytest
 cd frontend
 npm run build
 ```
+
+
+## 规则可追溯与防退化
+
+规则 v4.0.0：保留兼容方案 `legacy`；推荐研究对照使用 `separated`（三元素不共用且中间至少留一根标准 K 线，中心差至少4）。当前中枢是线段重叠模型，不是完整递归走势中枢。
+
+详细决策见 [规则决策记录](docs/decisions/0001-versioned-rules.md)，持续修改方法见 [开发与回归检查](docs/development.md)。前端从 `GET /api/chan/rules` 获取目录，并展示每批结果实际采用的版本、参数和指纹。
+
+API 图表从原子 JSON 快照读取，CSV 是可读导出。重算使用该股票该周期全部本地历史；日期范围只裁剪显示。同步不传规则参数时保留原设置。算法或行情变化会在查询时自动重建；完整旧批次保存在 `backend/app/data/analyzed/runs/`。
+
+本地检查（已有依赖环境）：
+
+```bash
+(cd backend && PYTHONPATH=. .venv/bin/python -m pytest)
+(cd frontend && npm run build)
+python3 scripts/check_rule_change.py HEAD
+```
+
+启动后端使用单 worker。CI 执行规则版本/文档检查、后端回归和前端构建；前端依赖固定版本，并使用 `npm ci` 安装。
+
+新增分型强弱、笔/线段MACD动能、趋势/盘整背驰及三类买卖点研究模型。图上默认按最早确认时间标点，候选可变化，参数可调整。具体定义与边界见 [缠论规则](docs/chan-rules.md) 和 [研究信号决策](docs/decisions/0002-chan-signals.md)。
+
+默认结构递归：展示与基础周期独立，从L0线段种子逐层构造走势/中枢，各层点保留来源及分钟观察时间。父子依赖可展开追溯；原单周期模型保留作对照。5m源已接入，历史不足不补造。定义见规则文档第30节及决策0003。
+
+5m现使用新浪最近最多1023根真实分钟行情，默认30日请求窗口；其他分钟周期仍使用腾讯接口。v4.0.1修复转折边界包含及线段方向极值，首次确认时间由原始K线前缀回放记录，详见规则31及决策0004。

@@ -8,5 +8,11 @@ dist/
 *.tsbuildinfo
 backend/app/data/raw/*.csv
 backend/app/data/analyzed/*.csv
+backend/app/data/analyzed/*_analysis.json
+backend/app/data/analyzed/runs/
+backend/app/data/**/*.tmp
 !backend/app/data/raw/.gitkeep
 !backend/app/data/analyzed/.gitkeep
+
+backend/app/data/analyzed/*_hierarchy.json
+backend/app/data/raw/backups/

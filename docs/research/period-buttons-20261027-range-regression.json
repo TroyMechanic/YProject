@@ -1,0 +1,121 @@
+{
+  "selection": {
+    "start": "2026-08-21",
+    "end": "2026-08-28"
+  },
+  "stages": [
+    {
+      "stage": "initial",
+      "period": "daily",
+      "count": 908,
+      "range": {
+        "from": "2026-09-01",
+        "to": "2026-09-30"
+      },
+      "pixelDelta": 0
+    },
+    {
+      "stage": "daily-to-4h",
+      "period": "hour4",
+      "count": 6,
+      "range": {
+        "from": 1787324400,
+        "to": 1787929200
+      },
+      "pixelDelta": 0
+    },
+    {
+      "stage": "4h-to-60m",
+      "period": "minute60",
+      "count": 22,
+      "range": {
+        "from": 1787308200,
+        "to": 1787916600
+      },
+      "pixelDelta": 0
+    },
+    {
+      "stage": "back-to-4h",
+      "period": "hour4",
+      "count": 6,
+      "range": {
+        "from": 1787324400,
+        "to": 1787929200
+      },
+      "pixelDelta": 0
+    },
+    {
+      "stage": "back-to-daily",
+      "period": "daily",
+      "count": 908,
+      "range": {
+        "from": "2026-08-21",
+        "to": "2026-08-28"
+      },
+      "pixelDelta": 0
+    },
+    {
+      "stage": "failed-request-retains-chart",
+      "period": "daily",
+      "count": 908,
+      "range": {
+        "from": "2026-08-21",
+        "to": "2026-08-28"
+      },
+      "pixelDelta": 0
+    },
+    {
+      "stage": "select-plotted-structure",
+      "description": "已选 2026-09-17 至 2026-09-22 按起止交易日期查看，包含两端整日。"
+    },
+    {
+      "stage": "empty-real-history",
+      "count": 0
+    },
+    {
+      "stage": "back-from-empty",
+      "period": "daily",
+      "count": 908,
+      "range": {
+        "from": "2023-01-03",
+        "to": "2023-01-10"
+      },
+      "pixelDelta": 0
+    },
+    {
+      "stage": "partial-coverage",
+      "period": "hour4",
+      "count": 6,
+      "range": {
+        "from": 1787324400,
+        "to": 1787929200
+      },
+      "pixelDelta": 0
+    },
+    {
+      "stage": "single-day",
+      "period": "hour4",
+      "count": 1,
+      "range": {
+        "from": 1787324400,
+        "to": 1787324400
+      },
+      "pixelDelta": 0
+    }
+  ],
+  "errors": [],
+  "requests": [
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?startDate=2023-01-01&period=daily",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?startDate=2023-01-01&period=daily",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?startDate=2026-08-21&endDate=2026-08-28&period=hour4&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?startDate=2026-08-21&endDate=2026-08-28&period=minute60&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?startDate=2026-08-21&endDate=2026-08-28&period=hour4&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?startDate=2023-01-01&period=daily&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?startDate=2023-01-03&endDate=2023-01-10&period=hour4&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?startDate=2023-01-01&period=daily&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?startDate=2026-08-21&endDate=2026-09-03&period=hour4&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?startDate=2023-01-01&period=daily&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?startDate=2026-08-21&endDate=2026-08-21&period=hour4&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?startDate=2023-01-01&period=daily&basePeriod=minute5&maxLevel=4"
+  ]
+}

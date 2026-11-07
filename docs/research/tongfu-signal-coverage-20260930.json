@@ -1,0 +1,70 @@
+{
+  "symbol": "002156.SZ",
+  "period": "minute5",
+  "ruleVersion": "4.1.0",
+  "runId": "97c49d93-d707-48ad-9de3-2c8c8f681987",
+  "inputHash": "e0db59417a165a6927df1aca3fae543fdb4010541aa2ac158fb9cc11a79c9a14",
+  "sourceCount": 1008,
+  "sourceStart": "2026-09-01T09:35:00",
+  "sourceEnd": "2026-09-30T15:00:00",
+  "zoneCount": 10,
+  "zoneRelations": {
+    "TREND_DOWN": 3,
+    "EXPANSION": 6
+  },
+  "divergenceTypes": {
+    "CONSOLIDATION": 5
+  },
+  "pointTypes": {
+    "S3": 6,
+    "B3": 1
+  },
+  "trendBackgroundChecks": [
+    {
+      "unitIndex": 9,
+      "endpoint": "2026-09-03T10:05:00",
+      "direction": "DOWN",
+      "comparisonUnitIndex": 3,
+      "comparisonWarmupComplete": false,
+      "areaRatio": 0.15501847903801097,
+      "ratioThreshold": 0.8
+    },
+    {
+      "unitIndex": 11,
+      "endpoint": "2026-09-03T11:00:00",
+      "direction": "DOWN",
+      "comparisonUnitIndex": 3,
+      "comparisonWarmupComplete": false,
+      "areaRatio": 0.034902829422314756,
+      "ratioThreshold": 0.8
+    },
+    {
+      "unitIndex": 13,
+      "endpoint": "2026-09-03T13:30:00",
+      "direction": "DOWN",
+      "comparisonUnitIndex": 3,
+      "comparisonWarmupComplete": false,
+      "areaRatio": 0.05917253350769047,
+      "ratioThreshold": 0.8
+    },
+    {
+      "unitIndex": 17,
+      "endpoint": "2026-09-04T14:50:00",
+      "direction": "DOWN",
+      "comparisonUnitIndex": 3,
+      "comparisonWarmupComplete": false,
+      "areaRatio": 2.1247956321715513,
+      "ratioThreshold": 0.8
+    },
+    {
+      "unitIndex": 19,
+      "endpoint": "2026-09-07T10:30:00",
+      "direction": "DOWN",
+      "comparisonUnitIndex": 3,
+      "comparisonWarmupComplete": false,
+      "areaRatio": 0.0,
+      "ratioThreshold": 0.8
+    }
+  ],
+  "secondPointBoundary": "Current B2/S2 implementation requires a confirmed same-level B1/S1; independent small-to-large cases are not implemented."
+}

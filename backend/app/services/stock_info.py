@@ -5,6 +5,7 @@ import re
 
 A_SHARE_NAME_MAP = {
     "002475.SZ": "立讯精密",
+    "002156.SZ": "通富微电",
 }
 
 

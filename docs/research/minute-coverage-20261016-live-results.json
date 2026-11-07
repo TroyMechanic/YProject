@@ -1,0 +1,177 @@
+[
+  {
+    "symbol": "002156.SZ",
+    "basePeriod": "minute1",
+    "sourceCount": 320,
+    "sourceStart": "2026-10-15T10:12:00",
+    "sourceEnd": "2026-10-16T11:30:00",
+    "inputHash": "93f3959e8b2ada84818070a98e5d7983a89ff7e8783dc59e6a9fed5252dbcf24",
+    "method": "only fresh 320 rows, no bridging stale 1m history",
+    "bis": 36,
+    "confirmedBis": 35,
+    "segments": 4,
+    "confirmedSegments": 3,
+    "biZones": 2,
+    "divergences": {
+      "LOCAL": 5,
+      "CONSOLIDATION": 1
+    },
+    "biPoints": {
+      "S3": 1
+    },
+    "confirmedBiPoints": 1,
+    "candidateBiPoints": 0,
+    "layers": [
+      {
+        "level": 0,
+        "units": 4,
+        "zones": 1,
+        "pointTypes": {}
+      },
+      {
+        "level": 1,
+        "units": 1,
+        "zones": 0,
+        "pointTypes": {}
+      }
+    ],
+    "ruleVersion": "4.1.0",
+    "examinedOn": "2026-10-16",
+    "dataPersistedToApplication": false
+  },
+  {
+    "symbol": "002156.SZ",
+    "basePeriod": "minute5",
+    "sourceCount": 1320,
+    "sourceStart": "2026-09-01T09:35:00",
+    "sourceEnd": "2026-10-16T11:30:00",
+    "inputHash": "7d336d4ec496b0676bc0416a44945e43e42bd60f2d59e5ca6f109bf0e8ba24cd",
+    "method": "merge overlapping real 5m rows with complete local history",
+    "bis": 100,
+    "confirmedBis": 99,
+    "segments": 15,
+    "confirmedSegments": 14,
+    "biZones": 12,
+    "divergences": {
+      "CONSOLIDATION": 7,
+      "TREND": 5
+    },
+    "biPoints": {
+      "S3": 8,
+      "B3": 1,
+      "B1": 5,
+      "B2": 2
+    },
+    "confirmedBiPoints": 16,
+    "candidateBiPoints": 0,
+    "layers": [
+      {
+        "level": 0,
+        "units": 15,
+        "zones": 3,
+        "pointTypes": {
+          "S3": 1
+        }
+      },
+      {
+        "level": 1,
+        "units": 3,
+        "zones": 0,
+        "pointTypes": {}
+      }
+    ],
+    "ruleVersion": "4.1.0",
+    "examinedOn": "2026-10-16",
+    "dataPersistedToApplication": false
+  },
+  {
+    "symbol": "002475.SZ",
+    "basePeriod": "minute1",
+    "sourceCount": 320,
+    "sourceStart": "2026-10-15T10:12:00",
+    "sourceEnd": "2026-10-16T11:30:00",
+    "inputHash": "e139df225a0b45191cfb55408e61deaced862a049554dde8801d53ed60e5cc39",
+    "method": "only fresh 320 rows, no bridging stale 1m history",
+    "bis": 32,
+    "confirmedBis": 31,
+    "segments": 8,
+    "confirmedSegments": 7,
+    "biZones": 4,
+    "divergences": {
+      "CONSOLIDATION": 4
+    },
+    "biPoints": {
+      "B3": 3
+    },
+    "confirmedBiPoints": 3,
+    "candidateBiPoints": 0,
+    "layers": [
+      {
+        "level": 0,
+        "units": 8,
+        "zones": 1,
+        "pointTypes": {
+          "B3": 1
+        }
+      },
+      {
+        "level": 1,
+        "units": 1,
+        "zones": 0,
+        "pointTypes": {}
+      }
+    ],
+    "ruleVersion": "4.1.0",
+    "examinedOn": "2026-10-16",
+    "dataPersistedToApplication": false
+  },
+  {
+    "symbol": "002475.SZ",
+    "basePeriod": "minute5",
+    "sourceCount": 1320,
+    "sourceStart": "2026-09-01T09:35:00",
+    "sourceEnd": "2026-10-16T11:30:00",
+    "inputHash": "15b227cc9995c64e7023c5f0f334cf783783d8d99dae288e26ea6c260a931d54",
+    "method": "merge overlapping real 5m rows with complete local history",
+    "bis": 103,
+    "confirmedBis": 102,
+    "segments": 19,
+    "confirmedSegments": 18,
+    "biZones": 15,
+    "divergences": {
+      "LOCAL": 1,
+      "CONSOLIDATION": 13,
+      "TREND": 8
+    },
+    "biPoints": {
+      "S3": 8,
+      "B3": 4,
+      "B1": 6,
+      "S1": 2,
+      "S2": 1,
+      "B2": 5
+    },
+    "confirmedBiPoints": 26,
+    "candidateBiPoints": 0,
+    "layers": [
+      {
+        "level": 0,
+        "units": 19,
+        "zones": 4,
+        "pointTypes": {
+          "S3": 3,
+          "B1": 2
+        }
+      },
+      {
+        "level": 1,
+        "units": 1,
+        "zones": 0,
+        "pointTypes": {}
+      }
+    ],
+    "ruleVersion": "4.1.0",
+    "examinedOn": "2026-10-16",
+    "dataPersistedToApplication": false
+  }
+]

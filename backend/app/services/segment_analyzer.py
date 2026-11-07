@@ -28,6 +28,8 @@ class _SegmentEnd:
     break_type: SegmentBreakType
     features: list[_Feature]
     feature_middle_index: int
+    confirmation_bi_index: int
+    boundary_inclusion: bool = False
 
 
 class SegmentAnalyzer:
@@ -62,6 +64,11 @@ class SegmentAnalyzer:
     ) -> _SegmentEnd | None:
         features: list[_Feature] = []
         for raw_feature in self._raw_features(bis, start_bi_index, direction):
+            boundary = self._boundary_inclusion_end(
+                bis, start_bi_index, direction, raw_feature.end_bi_index
+            )
+            if boundary is not None:
+                return boundary
             self._append_standardized_feature(features, raw_feature, direction)
             for middle_index in self._feature_fractal_indices(features, direction):
                 left = features[middle_index - 1]
@@ -73,6 +80,13 @@ class SegmentAnalyzer:
                     else middle.low_source_bi_index
                 )
                 if turn_bi_index - start_bi_index < 3:
+                    continue
+                prices = [b.start_price for b in bis[start_bi_index:turn_bi_index + 1]]
+                if direction == BiDirection.UP and (bis[turn_bi_index].start_price != max(prices)
+                                                     or bis[turn_bi_index].start_price <= bis[start_bi_index].start_price):
+                    continue
+                if direction == BiDirection.DOWN and (bis[turn_bi_index].start_price != min(prices)
+                                                       or bis[turn_bi_index].start_price >= bis[start_bi_index].start_price):
                     continue
                 if not self._features_confirmed(bis, (left, middle, right)):
                     continue
@@ -86,25 +100,75 @@ class SegmentAnalyzer:
                         break_type=SegmentBreakType.NO_GAP,
                         features=features[: middle_index + 2],
                         feature_middle_index=middle_index,
+                        confirmation_bi_index=max(max(f.source_bi_indices) for f in (left, middle, right)),
                     )
 
-                if self._has_reverse_feature_confirmation(bis, turn_bi_index, direction):
+                reverse_confirmation = self._reverse_confirmation_index(bis, turn_bi_index, direction)
+                if reverse_confirmation is not None:
                     return _SegmentEnd(
                         turn_bi_index=turn_bi_index,
                         break_type=SegmentBreakType.GAP_CONFIRMED,
                         features=features[: middle_index + 2],
                         feature_middle_index=middle_index,
+                        confirmation_bi_index=max(reverse_confirmation, max(max(f.source_bi_indices) for f in (left, middle, right))),
                     )
+                # The earliest valid gap candidate owns the decision. Confirming a later
+                # no-gap candidate now would rewrite history when this gap confirms later.
+                return None
         return None
 
-    def _has_reverse_feature_confirmation(
+    def _boundary_inclusion_end(
+        self, bis: list[Bi], start: int, direction: BiDirection, available: int
+    ) -> _SegmentEnd | None:
+        """Lesson 71: do not merge across a hypothesized segment boundary.
+
+        A first reverse stroke breaking the last feature, followed by an
+        overlapping reverse triplet and a further reverse extreme (possibly
+        after a contained third stroke), confirms that boundary. Only completed
+        strokes in the observed prefix are used.
+        """
+        for turn in range(start + 3, available - 1, 2):
+            if not self._valid_initial_triplet(bis, turn):
+                continue
+            before = self._standardize_features(bis[:turn], start, direction)
+            if not before:
+                continue
+            left = before[-1]
+            middle = self._feature_from_bi(bis[turn], turn)
+            if not self._has_include_relation(left, middle):
+                continue
+            if direction == BiDirection.UP:
+                valid = (middle.high > left.high and middle.low < left.low
+                         and middle.high == max(b.start_price for b in bis[start:turn + 1]))
+            else:
+                valid = (middle.low < left.low and middle.high > left.high
+                         and middle.low == min(b.start_price for b in bis[start:turn + 1]))
+            if not valid:
+                continue
+            # A contained third stroke is undecided: continue until the first
+            # reverse extreme is broken, or the original direction resumes.
+            for index in range(turn + 1, available + 1):
+                endpoint = bis[index].end_price
+                resumed = endpoint > middle.high if direction == BiDirection.UP else endpoint < middle.low
+                if resumed:
+                    break
+                broken = endpoint < middle.low if direction == BiDirection.UP else endpoint > middle.high
+                if index >= turn + 2 and broken:
+                    if all(b.confirmed for b in bis[start:index + 1]):
+                        right = self._feature_from_bi(bis[index], index)
+                        return _SegmentEnd(turn, SegmentBreakType.NO_GAP,
+                                           before + [middle, right], len(before), index, True)
+                    break
+        return None
+
+    def _reverse_confirmation_index(
         self,
         bis: list[Bi],
         turn_bi_index: int,
         original_direction: BiDirection,
-    ) -> bool:
+    ) -> int | None:
         if not self._valid_initial_triplet(bis, turn_bi_index):
-            return False
+            return None
 
         reverse_direction = self._opposite(original_direction)
         reverse_features: list[_Feature] = []
@@ -117,8 +181,8 @@ class SegmentAnalyzer:
                     reverse_features[middle_index + 1],
                 )
                 if self._features_confirmed(bis, triple):
-                    return True
-        return False
+                    return max(max(f.source_bi_indices) for f in triple)
+        return None
 
     def _build_confirmed_segment(
         self,
@@ -135,10 +199,12 @@ class SegmentAnalyzer:
             f"前三笔存在价格重叠区间 {overlap_low:.2f} 至 {overlap_high:.2f}",
             f"{'向上' if direction == BiDirection.UP else '向下'}线段取"
             f"{'向下' if direction == BiDirection.UP else '向上'}笔组成特征序列",
-            f"标准特征序列形成{feature_type}",
+            ("转折边界不做跨段包含合并；反向前三笔重叠，第三笔或后续笔先突破第一笔终点"
+             if segment_end.boundary_inclusion else f"标准特征序列形成{feature_type}"),
         ]
         if segment_end.break_type == SegmentBreakType.NO_GAP:
-            reasons.append("特征序列分型第一、第二元素之间无缺口，线段在分型极值处确认结束")
+            reasons.append("边界元素无缺口，反向线段确认形成" if segment_end.boundary_inclusion
+                           else "特征序列分型第一、第二元素之间无缺口，线段在分型极值处确认结束")
         else:
             reasons.append("特征序列分型第一、第二元素之间存在缺口")
             reasons.append("反向候选线段的标准特征序列已形成对应分型，完成二次确认")
@@ -156,6 +222,7 @@ class SegmentAnalyzer:
             breakType=segment_end.break_type,
             featureSequence=self._to_schema_features(segment_end.features, direction),
             reasons=reasons,
+            confirmationBiIndex=segment_end.confirmation_bi_index,
         )
 
     def _build_unconfirmed_segment(
@@ -349,7 +416,12 @@ class SegmentAnalyzer:
 
     def _find_initial_start(self, bis: list[Bi], start: int) -> int | None:
         for index in range(start, len(bis) - 2):
-            if self._valid_initial_triplet(bis, index):
+            if not self._valid_initial_triplet(bis, index):
+                continue
+            first, third = bis[index], bis[index + 2]
+            advances = (third.end_price > first.end_price if first.direction == BiDirection.UP
+                        else third.end_price < first.end_price)
+            if advances:
                 return index
         return None
 

@@ -24,13 +24,27 @@ class ChanAnalyzer:
         klines: list[Kline],
         min_kline_gap: int = 1,
     ) -> tuple[list[Fractal], list[Bi], list[Segment], list[CentralZone]]:
+        if not 1 <= min_kline_gap <= 20:
+            raise ValueError("标准K线最小间隔必须在1至20之间")
+        if any(left.time >= right.time for left, right in zip(klines, klines[1:])):
+            raise ValueError("K线时间必须严格递增且不重复")
         merged = self.merge_include_klines(klines)
         fractals = self.detect_fractals(merged)
         valid_fractals = self.filter_fractals(fractals)
-        bis = self.build_bis(valid_fractals, min_kline_gap)
+        # The last standard candle can still change through inclusion. A
+        # fractal using it as right support cannot lock an earlier stroke yet.
+        stable_fractals = self.stroke_fractals(fractals, merged)
+        bis = self.build_bis(stable_fractals, min_kline_gap)
         segments = SegmentAnalyzer().build_segments(bis)
         central_zones = CentralZoneAnalyzer().build_central_zones(segments)
         return valid_fractals, bis, segments, central_zones
+
+    @staticmethod
+    def stroke_fractals(fractals: list[Fractal], merged: list[MergedKline]) -> list[Fractal]:
+        if not merged:
+            return []
+        last = merged[-1].original_index
+        return [f for f in fractals if f.elements and f.elements[-1].kline_index < last]
 
     def merge_include_klines(self, klines: list[Kline]) -> list[MergedKline]:
         merged: list[MergedKline] = []
@@ -152,6 +166,7 @@ class ChanAnalyzer:
     def build_bis(self, fractals: list[Fractal], min_kline_gap: int = 1) -> list[Bi]:
         bis: list[Bi] = []
         last: Fractal | None = None
+        last_start: Fractal | None = None
 
         for item in fractals:
             if last is None:
@@ -160,6 +175,14 @@ class ChanAnalyzer:
 
             if item.type == last.type:
                 if self._is_more_extreme(item, last):
+                    if bis and last_start is not None:
+                        if not self._satisfies_bi_range_rule(last_start, item):
+                            continue
+                        previous = bis[-1]
+                        previous.end_time = item.time
+                        previous.end_price = item.price
+                        previous.end_index = item.kline_index
+                        previous.reasons = self._build_bi_reasons(last_start, item, min_kline_gap, previous.direction)
                     last = item
                 continue
 
@@ -182,6 +205,7 @@ class ChanAnalyzer:
                 reasons=self._build_bi_reasons(last, item, min_kline_gap, direction),
             )
             bis.append(bi)
+            last_start = last
             last = item
 
         if bis:

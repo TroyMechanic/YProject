@@ -1,0 +1,30 @@
+[
+  {
+    "snapshot": "002475.SZ_daily_analysis.json",
+    "inputHash": "6de1a594a52fb175342947d0ffebc4af4834a8e076d1ba2eb659eee2f16a476a",
+    "beforeRun": "7bc372eb-270f-428b-a38f-3178af1936bb",
+    "afterRun": "8ff37f19-6547-4ad2-9fb1-a811133b7ea6",
+    "changedAnalysisFields": []
+  },
+  {
+    "snapshot": "002475.SZ_hour4_analysis.json",
+    "inputHash": "748d7803f1887670eb3137e04570fdcfa271d7fc8613df92648ffb91d5cf1055",
+    "beforeRun": "515a44c6-4fd0-4110-8283-5d787e0cf3b5",
+    "afterRun": "800eb831-cfc7-4091-8c9c-7d28b716c8a4",
+    "changedAnalysisFields": []
+  },
+  {
+    "snapshot": "002475.SZ_minute60_analysis.json",
+    "inputHash": "e82ae31ec69587de3a6576e7face006990b9acac99980b8aa93760de8933f5e7",
+    "beforeRun": "4391dc4f-81be-4efb-adc5-79c2020d0a41",
+    "afterRun": "fd5686c9-065a-41f3-ad04-73bdb296fbe2",
+    "changedAnalysisFields": []
+  },
+  {
+    "snapshot": "002475.SZ_minute5_analysis.json",
+    "inputHash": "7193171492f4ec1e391c67aa52cc04a0d369e0422d887208d96c23364de61048",
+    "beforeRun": "2da21ed0-c2ee-4e3b-9229-2bf229b1eea7",
+    "afterRun": "3859b7b4-a7af-4676-b33c-9cb5c8ef8bcf",
+    "changedAnalysisFields": []
+  }
+]

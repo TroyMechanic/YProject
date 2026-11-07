@@ -1,0 +1,51 @@
+[
+  {
+    "snapshot": "002475.SZ_daily_analysis.json",
+    "inputHash": "6de1a594a52fb175342947d0ffebc4af4834a8e076d1ba2eb659eee2f16a476a",
+    "beforeRun": "8ff37f19-6547-4ad2-9fb1-a811133b7ea6",
+    "afterRun": "19a8ce92-7ffc-44c1-86a5-3475a97628d1",
+    "changedResultFields": []
+  },
+  {
+    "snapshot": "002475.SZ_monthly_analysis.json",
+    "inputHash": "e380c3418bf7f26f6b8d23c9d4f406a11743375dd290f6cf149006532f138a8f",
+    "beforeRun": "6acb4cf4-db47-470c-8e03-60207c8f6d95",
+    "afterRun": "5bb88a0c-90be-410d-a4f3-f1cecdd46db0",
+    "changedResultFields": []
+  },
+  {
+    "snapshot": "002475.SZ_hour4_analysis.json",
+    "inputHash": "748d7803f1887670eb3137e04570fdcfa271d7fc8613df92648ffb91d5cf1055",
+    "beforeRun": "800eb831-cfc7-4091-8c9c-7d28b716c8a4",
+    "afterRun": "696a3027-1125-486d-a79a-ba37c7d68907",
+    "changedResultFields": []
+  },
+  {
+    "snapshot": "002475.SZ_minute60_analysis.json",
+    "inputHash": "e82ae31ec69587de3a6576e7face006990b9acac99980b8aa93760de8933f5e7",
+    "beforeRun": "fd5686c9-065a-41f3-ad04-73bdb296fbe2",
+    "afterRun": "2b461de9-f56d-4d34-822b-9249ec520ee7",
+    "changedResultFields": []
+  },
+  {
+    "snapshot": "002475.SZ_minute1_analysis.json",
+    "inputHash": "b0e1a6973196ed0f641eac0dc533925aaef6f9970b3a8fb5d038710b0c1a089d",
+    "beforeRun": "5f6dadac-ce18-47fb-8852-0d1975e92de8",
+    "afterRun": "2c5f765e-30bf-462f-aa44-9b24cf86d4d8",
+    "changedResultFields": []
+  },
+  {
+    "snapshot": "002475.SZ_minute5_analysis.json",
+    "inputHash": "7193171492f4ec1e391c67aa52cc04a0d369e0422d887208d96c23364de61048",
+    "beforeRun": "3859b7b4-a7af-4676-b33c-9cb5c8ef8bcf",
+    "afterRun": "32830469-f13c-48f8-837b-673f24710241",
+    "changedResultFields": []
+  },
+  {
+    "snapshot": "002475.SZ_minute30_analysis.json",
+    "inputHash": "32767ec6b52f14ee8ff94069467b20bf9ed3b4454d086e6015eb7418cee47a18",
+    "beforeRun": "ce81cdb3-6c10-4d41-aa4c-ab7075e3c9c3",
+    "afterRun": "c66f9282-2712-40cf-af2c-7aeaa30bf784",
+    "changedResultFields": []
+  }
+]

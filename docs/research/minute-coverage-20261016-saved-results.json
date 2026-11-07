@@ -1,0 +1,450 @@
+{
+  "asOf": "2026-10-16",
+  "basis": "committed local snapshots; default 5m base",
+  "symbols": [
+    {
+      "symbol": "002156.SZ",
+      "basePeriod": "minute5",
+      "baseRunId": "1a79bf2b-2a9a-4aa0-a80d-e5bcf2d9482c",
+      "baseInputHash": "e0db59417a165a6927df1aca3fae543fdb4010541aa2ac158fb9cc11a79c9a14",
+      "baseStart": "2026-09-01 09:35:00",
+      "baseEnd": "2026-09-30 15:00:00",
+      "settings": {
+        "ruleProfile": "legacy",
+        "minKlineGap": 1,
+        "signalLevel": "bi",
+        "divergenceRatio": 0.8,
+        "zeroAxisTolerance": 0.01,
+        "macdFast": 12,
+        "macdSlow": 26,
+        "macdSignal": 9
+      },
+      "baseBiObservations": {
+        "confirmed": 7,
+        "candidates": 0,
+        "types": {
+          "S3": 6,
+          "B3": 1
+        }
+      },
+      "recursivePoints": {
+        "confirmed": 1,
+        "candidates": 0,
+        "types": {
+          "S3": 1
+        }
+      },
+      "layers": [
+        {
+          "level": 0,
+          "units": 11,
+          "zones": 2,
+          "points": {
+            "confirmed": 1,
+            "candidates": 0,
+            "types": {
+              "S3": 1
+            }
+          }
+        },
+        {
+          "level": 1,
+          "units": 2,
+          "zones": 0,
+          "points": {
+            "confirmed": 0,
+            "candidates": 0,
+            "types": {}
+          }
+        }
+      ],
+      "displays": [
+        {
+          "period": "minute1",
+          "sourceCount": 320,
+          "sourceStart": "2026-09-29 13:42:00",
+          "sourceEnd": "2026-09-30 15:00:00",
+          "standaloneBis": 23,
+          "standaloneSegments": 1,
+          "standaloneZones": 3,
+          "standaloneDivergences": {},
+          "standalonePoints": {
+            "confirmed": 2,
+            "candidates": 0,
+            "types": {
+              "S3": 2
+            }
+          },
+          "drawableCombinedPointsWithoutDateCrop": {
+            "confirmed": 1,
+            "candidates": 0,
+            "types": {
+              "S3": 1
+            }
+          },
+          "defaultWindowStart": "2026-10-07",
+          "windowKlines": 0,
+          "windowPointsByConfirmationTime": {
+            "confirmed": 0,
+            "candidates": 0,
+            "types": {}
+          },
+          "windowDrawablePoints": {
+            "confirmed": 0,
+            "candidates": 0,
+            "types": {}
+          }
+        },
+        {
+          "period": "minute5",
+          "sourceCount": 1008,
+          "sourceStart": "2026-09-01 09:35:00",
+          "sourceEnd": "2026-09-30 15:00:00",
+          "standaloneBis": 75,
+          "standaloneSegments": 11,
+          "standaloneZones": 10,
+          "standaloneDivergences": {
+            "CONSOLIDATION": 5
+          },
+          "standalonePoints": {
+            "confirmed": 7,
+            "candidates": 0,
+            "types": {
+              "S3": 6,
+              "B3": 1
+            }
+          },
+          "drawableCombinedPointsWithoutDateCrop": {
+            "confirmed": 8,
+            "candidates": 0,
+            "types": {
+              "S3": 7,
+              "B3": 1
+            }
+          },
+          "defaultWindowStart": "2026-09-17",
+          "windowKlines": 432,
+          "windowPointsByConfirmationTime": {
+            "confirmed": 4,
+            "candidates": 0,
+            "types": {
+              "S3": 3,
+              "B3": 1
+            }
+          },
+          "windowDrawablePoints": {
+            "confirmed": 4,
+            "candidates": 0,
+            "types": {
+              "S3": 3,
+              "B3": 1
+            }
+          }
+        },
+        {
+          "period": "minute30",
+          "sourceCount": 56,
+          "sourceStart": "2026-09-21 10:00:00",
+          "sourceEnd": "2026-09-30 15:00:00",
+          "standaloneBis": 3,
+          "standaloneSegments": 0,
+          "standaloneZones": 0,
+          "standaloneDivergences": {},
+          "standalonePoints": {
+            "confirmed": 0,
+            "candidates": 0,
+            "types": {}
+          },
+          "drawableCombinedPointsWithoutDateCrop": {
+            "confirmed": 3,
+            "candidates": 0,
+            "types": {
+              "S3": 2,
+              "B3": 1
+            }
+          },
+          "defaultWindowStart": "2026-10-07",
+          "windowKlines": 0,
+          "windowPointsByConfirmationTime": {
+            "confirmed": 0,
+            "candidates": 0,
+            "types": {}
+          },
+          "windowDrawablePoints": {
+            "confirmed": 0,
+            "candidates": 0,
+            "types": {}
+          }
+        },
+        {
+          "period": "minute60",
+          "sourceCount": 28,
+          "sourceStart": "2026-09-21 10:30:00",
+          "sourceEnd": "2026-09-30 15:00:00",
+          "standaloneBis": 3,
+          "standaloneSegments": 0,
+          "standaloneZones": 0,
+          "standaloneDivergences": {},
+          "standalonePoints": {
+            "confirmed": 0,
+            "candidates": 0,
+            "types": {}
+          },
+          "drawableCombinedPointsWithoutDateCrop": {
+            "confirmed": 3,
+            "candidates": 0,
+            "types": {
+              "S3": 2,
+              "B3": 1
+            }
+          },
+          "defaultWindowStart": "2026-10-07",
+          "windowKlines": 0,
+          "windowPointsByConfirmationTime": {
+            "confirmed": 0,
+            "candidates": 0,
+            "types": {}
+          },
+          "windowDrawablePoints": {
+            "confirmed": 0,
+            "candidates": 0,
+            "types": {}
+          }
+        }
+      ]
+    },
+    {
+      "symbol": "002475.SZ",
+      "basePeriod": "minute5",
+      "baseRunId": "7b200f12-be79-4033-a34e-9185974f71f8",
+      "baseInputHash": "5a61627e82f5bbda5d87d9258ea8161843cc1b1a9aa2a389e7a112ebc4f2e86b",
+      "baseStart": "2026-09-01 09:35:00",
+      "baseEnd": "2026-09-30 15:00:00",
+      "settings": {
+        "ruleProfile": "legacy",
+        "minKlineGap": 1,
+        "signalLevel": "bi",
+        "divergenceRatio": 0.8,
+        "zeroAxisTolerance": 0.01,
+        "macdFast": 12,
+        "macdSlow": 26,
+        "macdSignal": 9
+      },
+      "baseBiObservations": {
+        "confirmed": 18,
+        "candidates": 1,
+        "types": {
+          "S3": 7,
+          "B3": 4,
+          "B1": 3,
+          "S1": 2,
+          "S2": 1,
+          "B2": 2
+        }
+      },
+      "recursivePoints": {
+        "confirmed": 2,
+        "candidates": 0,
+        "types": {
+          "S3": 2
+        }
+      },
+      "layers": [
+        {
+          "level": 0,
+          "units": 15,
+          "zones": 3,
+          "points": {
+            "confirmed": 2,
+            "candidates": 0,
+            "types": {
+              "S3": 2
+            }
+          }
+        },
+        {
+          "level": 1,
+          "units": 1,
+          "zones": 0,
+          "points": {
+            "confirmed": 0,
+            "candidates": 0,
+            "types": {}
+          }
+        }
+      ],
+      "displays": [
+        {
+          "period": "minute1",
+          "sourceCount": 398,
+          "sourceStart": "2026-08-27 10:12:00",
+          "sourceEnd": "2026-08-28 14:18:00",
+          "standaloneBis": 29,
+          "standaloneSegments": 2,
+          "standaloneZones": 6,
+          "standaloneDivergences": {
+            "TREND": 4,
+            "CONSOLIDATION": 1
+          },
+          "standalonePoints": {
+            "confirmed": 11,
+            "candidates": 0,
+            "types": {
+              "S3": 3,
+              "B3": 2,
+              "S1": 2,
+              "S2": 1,
+              "B1": 2,
+              "B2": 1
+            }
+          },
+          "drawableCombinedPointsWithoutDateCrop": {
+            "confirmed": 0,
+            "candidates": 0,
+            "types": {}
+          },
+          "defaultWindowStart": "2026-10-07",
+          "windowKlines": 0,
+          "windowPointsByConfirmationTime": {
+            "confirmed": 0,
+            "candidates": 0,
+            "types": {}
+          },
+          "windowDrawablePoints": {
+            "confirmed": 0,
+            "candidates": 0,
+            "types": {}
+          }
+        },
+        {
+          "period": "minute5",
+          "sourceCount": 1008,
+          "sourceStart": "2026-09-01 09:35:00",
+          "sourceEnd": "2026-09-30 15:00:00",
+          "standaloneBis": 87,
+          "standaloneSegments": 15,
+          "standaloneZones": 13,
+          "standaloneDivergences": {
+            "LOCAL": 1,
+            "CONSOLIDATION": 12,
+            "TREND": 5
+          },
+          "standalonePoints": {
+            "confirmed": 18,
+            "candidates": 1,
+            "types": {
+              "S3": 7,
+              "B3": 4,
+              "B1": 3,
+              "S1": 2,
+              "S2": 1,
+              "B2": 2
+            }
+          },
+          "drawableCombinedPointsWithoutDateCrop": {
+            "confirmed": 20,
+            "candidates": 1,
+            "types": {
+              "S3": 9,
+              "B3": 4,
+              "B1": 3,
+              "S1": 2,
+              "S2": 1,
+              "B2": 2
+            }
+          },
+          "defaultWindowStart": "2026-09-17",
+          "windowKlines": 432,
+          "windowPointsByConfirmationTime": {
+            "confirmed": 14,
+            "candidates": 1,
+            "types": {
+              "B3": 3,
+              "S1": 2,
+              "S2": 1,
+              "S3": 5,
+              "B1": 2,
+              "B2": 2
+            }
+          },
+          "windowDrawablePoints": {
+            "confirmed": 14,
+            "candidates": 1,
+            "types": {
+              "B3": 3,
+              "S1": 2,
+              "S2": 1,
+              "S3": 5,
+              "B1": 2,
+              "B2": 2
+            }
+          }
+        },
+        {
+          "period": "minute30",
+          "sourceCount": 60,
+          "sourceStart": "2026-08-19 10:00:00",
+          "sourceEnd": "2026-08-28 11:30:00",
+          "standaloneBis": 5,
+          "standaloneSegments": 1,
+          "standaloneZones": 1,
+          "standaloneDivergences": {},
+          "standalonePoints": {
+            "confirmed": 0,
+            "candidates": 0,
+            "types": {}
+          },
+          "drawableCombinedPointsWithoutDateCrop": {
+            "confirmed": 0,
+            "candidates": 0,
+            "types": {}
+          },
+          "defaultWindowStart": "2026-10-07",
+          "windowKlines": 0,
+          "windowPointsByConfirmationTime": {
+            "confirmed": 0,
+            "candidates": 0,
+            "types": {}
+          },
+          "windowDrawablePoints": {
+            "confirmed": 0,
+            "candidates": 0,
+            "types": {}
+          }
+        },
+        {
+          "period": "minute60",
+          "sourceCount": 30,
+          "sourceStart": "2026-08-19 10:30:00",
+          "sourceEnd": "2026-08-28 11:30:00",
+          "standaloneBis": 1,
+          "standaloneSegments": 0,
+          "standaloneZones": 0,
+          "standaloneDivergences": {},
+          "standalonePoints": {
+            "confirmed": 0,
+            "candidates": 0,
+            "types": {}
+          },
+          "drawableCombinedPointsWithoutDateCrop": {
+            "confirmed": 0,
+            "candidates": 0,
+            "types": {}
+          },
+          "defaultWindowStart": "2026-10-07",
+          "windowKlines": 0,
+          "windowPointsByConfirmationTime": {
+            "confirmed": 0,
+            "candidates": 0,
+            "types": {}
+          },
+          "windowDrawablePoints": {
+            "confirmed": 0,
+            "candidates": 0,
+            "types": {}
+          }
+        }
+      ]
+    }
+  ]
+}

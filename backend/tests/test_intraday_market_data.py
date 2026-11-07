@@ -30,6 +30,25 @@ def test_parse_tencent_minute_kline_preserves_datetime() -> None:
     assert item.volume == 123400
 
 
+def test_five_minute_source_preserves_share_volume_and_filters_dates(monkeypatch):
+    from datetime import date
+    import requests
+    class Response:
+        def raise_for_status(self): pass
+        def json(self):
+            return [{'day': f'2026-09-{d:02d} 10:00:00', 'open':'10', 'high':'12',
+                     'low':'9', 'close':'11', 'volume':'1234', 'amount':'13574'} for d in (1,2,3)]
+    calls=[]
+    def get(url,**kwargs):
+        calls.append((url,kwargs)); return Response()
+    monkeypatch.setattr(requests,'get',get)
+    rows=MarketDataService().fetch('002475.SZ',KlinePeriod.MINUTE_5,date(2026,9,2),date(2026,9,2))
+    assert len(rows)==1 and rows[0].time==datetime(2026,9,2,10)
+    assert rows[0].volume==1234 and rows[0].amount==13574
+    assert calls[0][1]['params']['datalen']==1023
+    assert calls[0][1]['params']['symbol']=='sz002475'
+
+
 def test_four_hour_period_aggregates_one_a_share_trading_day() -> None:
     rows = [
         make_intraday("2026-08-28T10:30:00", 10, 12, 9, 11, 100),

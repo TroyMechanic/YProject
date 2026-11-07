@@ -1,0 +1,58 @@
+[
+  {
+    "snapshot": "002475.SZ_daily_analysis.json",
+    "inputHash": "6de1a594a52fb175342947d0ffebc4af4834a8e076d1ba2eb659eee2f16a476a",
+    "beforeRun": "19a8ce92-7ffc-44c1-86a5-3475a97628d1",
+    "afterRun": "5389ddd5-d967-4a2e-9743-b71148fbc596",
+    "changedResultFields": []
+  },
+  {
+    "snapshot": "002475.SZ_monthly_analysis.json",
+    "inputHash": "e380c3418bf7f26f6b8d23c9d4f406a11743375dd290f6cf149006532f138a8f",
+    "beforeRun": "5bb88a0c-90be-410d-a4f3-f1cecdd46db0",
+    "afterRun": "d90ef1ee-16c4-435a-b948-fe22c31d26f9",
+    "changedResultFields": []
+  },
+  {
+    "snapshot": "002475.SZ_hour4_analysis.json",
+    "inputHash": "748d7803f1887670eb3137e04570fdcfa271d7fc8613df92648ffb91d5cf1055",
+    "beforeRun": "696a3027-1125-486d-a79a-ba37c7d68907",
+    "afterRun": "697abfed-eb3d-47cf-b7c5-20015a557162",
+    "changedResultFields": []
+  },
+  {
+    "snapshot": "002475.SZ_weekly_analysis.json",
+    "inputHash": "39e7733ffd543b12e40a4f549a8d5d67483bf619bf55f25294c12a9bc99a0277",
+    "beforeRun": "8372e061-d874-4778-a32a-6dae3674b7a5",
+    "afterRun": "fc17501e-0045-4060-9f56-034ccdb1289f",
+    "changedResultFields": []
+  },
+  {
+    "snapshot": "002475.SZ_minute60_analysis.json",
+    "inputHash": "e82ae31ec69587de3a6576e7face006990b9acac99980b8aa93760de8933f5e7",
+    "beforeRun": "2b461de9-f56d-4d34-822b-9249ec520ee7",
+    "afterRun": "476062ff-348e-467e-a965-5dafc467a6c2",
+    "changedResultFields": []
+  },
+  {
+    "snapshot": "002475.SZ_minute1_analysis.json",
+    "inputHash": "b0e1a6973196ed0f641eac0dc533925aaef6f9970b3a8fb5d038710b0c1a089d",
+    "beforeRun": "2c5f765e-30bf-462f-aa44-9b24cf86d4d8",
+    "afterRun": "dd8c4c99-79c5-496e-a541-2de1d26ea9d3",
+    "changedResultFields": []
+  },
+  {
+    "snapshot": "002475.SZ_minute5_analysis.json",
+    "inputHash": "7193171492f4ec1e391c67aa52cc04a0d369e0422d887208d96c23364de61048",
+    "beforeRun": "32830469-f13c-48f8-837b-673f24710241",
+    "afterRun": "c7a456ca-5f2f-4ca5-8dd7-aa6cfe1c06fd",
+    "changedResultFields": []
+  },
+  {
+    "snapshot": "002475.SZ_minute30_analysis.json",
+    "inputHash": "32767ec6b52f14ee8ff94069467b20bf9ed3b4454d086e6015eb7418cee47a18",
+    "beforeRun": "c66f9282-2712-40cf-af2c-7aeaa30bf784",
+    "afterRun": "27df955a-4c6f-43a0-aff2-1f9dac246bef",
+    "changedResultFields": []
+  }
+]

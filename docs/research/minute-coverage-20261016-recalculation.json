@@ -1,0 +1,146 @@
+[
+  {
+    "symbol": "002156.SZ",
+    "period": "daily",
+    "inputHashBefore": "415adfe0357b6b51fc4ddd9e58285fdde8e286861809c4c4f375eae9799b7b99",
+    "inputHashAfter": "415adfe0357b6b51fc4ddd9e58285fdde8e286861809c4c4f375eae9799b7b99",
+    "runIdBefore": "441e164e-0b27-4fb7-a853-495c7b9f7a9d",
+    "runIdAfter": "3a758a87-e0ab-4f20-92fd-1c54e6364f6a",
+    "changedResultFields": []
+  },
+  {
+    "symbol": "002156.SZ",
+    "period": "weekly",
+    "inputHashBefore": "029c3e811deec53ca6f181fe8f847e1abf0963fa0914f64758bbb40d8063df36",
+    "inputHashAfter": "029c3e811deec53ca6f181fe8f847e1abf0963fa0914f64758bbb40d8063df36",
+    "runIdBefore": "ec9afe6d-8fac-42c7-a81e-ded292cb6913",
+    "runIdAfter": "63f13eea-947c-4a15-aaa7-e41aa4a2da14",
+    "changedResultFields": []
+  },
+  {
+    "symbol": "002156.SZ",
+    "period": "monthly",
+    "inputHashBefore": "69949fe410b2178adf667acdb98e11d2acde8ea8b1d0a77adc4f75b9df9c6c49",
+    "inputHashAfter": "69949fe410b2178adf667acdb98e11d2acde8ea8b1d0a77adc4f75b9df9c6c49",
+    "runIdBefore": "9e413f7d-8e0c-4668-9e11-de12d94d8d28",
+    "runIdAfter": "9c947756-bb7b-4c6f-9980-2497e58d8d35",
+    "changedResultFields": []
+  },
+  {
+    "symbol": "002156.SZ",
+    "period": "hour4",
+    "inputHashBefore": "7ac0dff67392a6a8e6a3bdf0d26dac383607a3cf3d8d81c654c3b4ff081a2fea",
+    "inputHashAfter": "7ac0dff67392a6a8e6a3bdf0d26dac383607a3cf3d8d81c654c3b4ff081a2fea",
+    "runIdBefore": "5f7d7bd9-5ebe-418f-8c26-4467da225b7d",
+    "runIdAfter": "3825c24f-25b9-455e-9c06-e70074817d43",
+    "changedResultFields": []
+  },
+  {
+    "symbol": "002156.SZ",
+    "period": "minute60",
+    "inputHashBefore": "805b4a1f5640c1f1b3736deca8f6f8b865f62c43bc0d31ddf30aa45cff58d1dc",
+    "inputHashAfter": "805b4a1f5640c1f1b3736deca8f6f8b865f62c43bc0d31ddf30aa45cff58d1dc",
+    "runIdBefore": "57e143e7-2981-4cbe-a1b0-eaf6e0997bd8",
+    "runIdAfter": "55b37192-88c2-44c5-8c15-774479050937",
+    "changedResultFields": []
+  },
+  {
+    "symbol": "002156.SZ",
+    "period": "minute30",
+    "inputHashBefore": "78ce95c7d49812a1a9cf31b6047ba5e0b385f47f65bfd8dc78194c24befa76e3",
+    "inputHashAfter": "78ce95c7d49812a1a9cf31b6047ba5e0b385f47f65bfd8dc78194c24befa76e3",
+    "runIdBefore": "5cdf254e-6db2-41ee-b64d-84c34f47404c",
+    "runIdAfter": "c0146bd5-3ff3-4b59-a9f5-13e5be908140",
+    "changedResultFields": []
+  },
+  {
+    "symbol": "002156.SZ",
+    "period": "minute5",
+    "inputHashBefore": "e0db59417a165a6927df1aca3fae543fdb4010541aa2ac158fb9cc11a79c9a14",
+    "inputHashAfter": "e0db59417a165a6927df1aca3fae543fdb4010541aa2ac158fb9cc11a79c9a14",
+    "runIdBefore": "97c49d93-d707-48ad-9de3-2c8c8f681987",
+    "runIdAfter": "1a79bf2b-2a9a-4aa0-a80d-e5bcf2d9482c",
+    "changedResultFields": []
+  },
+  {
+    "symbol": "002156.SZ",
+    "period": "minute1",
+    "inputHashBefore": "b7533eee7e66e6a3aad1dfd3276c4f0df3c1fc0673056a94669ad618c0d8063c",
+    "inputHashAfter": "b7533eee7e66e6a3aad1dfd3276c4f0df3c1fc0673056a94669ad618c0d8063c",
+    "runIdBefore": "aa7adcae-f793-4d6d-85c6-bb05b8ebac10",
+    "runIdAfter": "2d466b1b-16a4-424c-9c9c-d2ccd37bc8db",
+    "changedResultFields": []
+  },
+  {
+    "symbol": "002475.SZ",
+    "period": "daily",
+    "inputHashBefore": "6de1a594a52fb175342947d0ffebc4af4834a8e076d1ba2eb659eee2f16a476a",
+    "inputHashAfter": "6de1a594a52fb175342947d0ffebc4af4834a8e076d1ba2eb659eee2f16a476a",
+    "runIdBefore": "543afbd0-ddc2-4ca4-b000-c4ce414c0191",
+    "runIdAfter": "d74d8e5a-6d4f-41df-85be-e195c696bb6c",
+    "changedResultFields": []
+  },
+  {
+    "symbol": "002475.SZ",
+    "period": "weekly",
+    "inputHashBefore": "39e7733ffd543b12e40a4f549a8d5d67483bf619bf55f25294c12a9bc99a0277",
+    "inputHashAfter": "39e7733ffd543b12e40a4f549a8d5d67483bf619bf55f25294c12a9bc99a0277",
+    "runIdBefore": "f62c0c3c-41fa-421f-b785-1cfdb0eda3b7",
+    "runIdAfter": "b66f58b3-ac3c-4966-b74e-d5285c1f085f",
+    "changedResultFields": []
+  },
+  {
+    "symbol": "002475.SZ",
+    "period": "monthly",
+    "inputHashBefore": "e380c3418bf7f26f6b8d23c9d4f406a11743375dd290f6cf149006532f138a8f",
+    "inputHashAfter": "e380c3418bf7f26f6b8d23c9d4f406a11743375dd290f6cf149006532f138a8f",
+    "runIdBefore": "db9b8129-53f9-49c4-89df-32b9249002cd",
+    "runIdAfter": "899d869c-6507-4430-8e49-d83c4a3dfb44",
+    "changedResultFields": []
+  },
+  {
+    "symbol": "002475.SZ",
+    "period": "hour4",
+    "inputHashBefore": "748d7803f1887670eb3137e04570fdcfa271d7fc8613df92648ffb91d5cf1055",
+    "inputHashAfter": "748d7803f1887670eb3137e04570fdcfa271d7fc8613df92648ffb91d5cf1055",
+    "runIdBefore": "b0c57a40-635e-4d38-be3e-0128f751db26",
+    "runIdAfter": "61e2dddb-c1c5-451d-89d9-1758218c9e3f",
+    "changedResultFields": []
+  },
+  {
+    "symbol": "002475.SZ",
+    "period": "minute60",
+    "inputHashBefore": "e82ae31ec69587de3a6576e7face006990b9acac99980b8aa93760de8933f5e7",
+    "inputHashAfter": "e82ae31ec69587de3a6576e7face006990b9acac99980b8aa93760de8933f5e7",
+    "runIdBefore": "3a9c60a0-4f02-44f4-b684-280ca90a2895",
+    "runIdAfter": "16d28c0f-73ab-4354-b6c5-f91647bfe305",
+    "changedResultFields": []
+  },
+  {
+    "symbol": "002475.SZ",
+    "period": "minute30",
+    "inputHashBefore": "ec4baf5be86321b22bdfaf45850e2bd354d5c0c34bf8291b6871ead6b3bf5b4e",
+    "inputHashAfter": "ec4baf5be86321b22bdfaf45850e2bd354d5c0c34bf8291b6871ead6b3bf5b4e",
+    "runIdBefore": "b5e502b2-a48e-4b3a-bae9-97511e7c7f11",
+    "runIdAfter": "f5a9e393-973a-4bca-8d45-cc27fe8f5eb2",
+    "changedResultFields": []
+  },
+  {
+    "symbol": "002475.SZ",
+    "period": "minute5",
+    "inputHashBefore": "5a61627e82f5bbda5d87d9258ea8161843cc1b1a9aa2a389e7a112ebc4f2e86b",
+    "inputHashAfter": "5a61627e82f5bbda5d87d9258ea8161843cc1b1a9aa2a389e7a112ebc4f2e86b",
+    "runIdBefore": "d1c711a2-2ae1-48f8-8ad2-5eef5fc2e8c1",
+    "runIdAfter": "7b200f12-be79-4033-a34e-9185974f71f8",
+    "changedResultFields": []
+  },
+  {
+    "symbol": "002475.SZ",
+    "period": "minute1",
+    "inputHashBefore": "b0e1a6973196ed0f641eac0dc533925aaef6f9970b3a8fb5d038710b0c1a089d",
+    "inputHashAfter": "b0e1a6973196ed0f641eac0dc533925aaef6f9970b3a8fb5d038710b0c1a089d",
+    "runIdBefore": "1263128a-57c2-493b-ac70-50fe9b0f3b29",
+    "runIdAfter": "a2bac3d9-9198-440a-a1dc-7a2a23d53158",
+    "changedResultFields": []
+  }
+]

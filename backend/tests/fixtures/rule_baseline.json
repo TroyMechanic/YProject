@@ -1,0 +1,9 @@
+{
+  "ruleVersion": "4.3.1",
+  "description": "手工核对的三分型样本；变更预期必须记录规则决策，不能自动覆盖。",
+  "ranges": [[10,7],[12,9],[11,8],[9,6],[8,4],[10,6],[12,8],[13,10],[11,9]],
+  "expected": {
+    "legacy": {"fractals": [[1,"TOP",12],[4,"BOTTOM",4],[7,"TOP",13]], "bis": [[1,4,12,4,"DOWN",false]], "segments": 0, "centralZones": 0},
+    "separated": {"fractals": [[1,"TOP",12],[4,"BOTTOM",4],[7,"TOP",13]], "bis": [], "segments": 0, "centralZones": 0}
+  }
+}

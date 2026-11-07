@@ -1,0 +1,242 @@
+{
+  "before": {
+    "DAILY": {
+      "ranges": [
+        {
+          "from": "2026-08-26",
+          "to": "2026-09-30"
+        },
+        {
+          "from": "2026-08-28",
+          "to": "2026-09-30"
+        }
+      ],
+      "maxSamplePixelDelta": 98.07407407407663
+    },
+    "30M": {
+      "ranges": [
+        {
+          "from": 1787913000,
+          "to": 1792162800
+        },
+        {
+          "from": 1791453600,
+          "to": 1792162800
+        }
+      ],
+      "maxSamplePixelDelta": 23.22807017543869
+    },
+    "5M": {
+      "ranges": [
+        {
+          "from": 1789558200,
+          "to": 1792161600
+        },
+        {
+          "from": 1789637700,
+          "to": 1792161600
+        }
+      ],
+      "maxSamplePixelDelta": 1.7307189542484593
+    }
+  },
+  "after": {
+    "DAILY": {
+      "ranges": [
+        {
+          "from": "2026-09-01",
+          "to": "2026-09-30"
+        },
+        {
+          "from": "2026-09-01",
+          "to": "2026-09-30"
+        }
+      ],
+      "maxSamplePixelDelta": 0.0
+    },
+    "30M": {
+      "ranges": [
+        {
+          "from": 1791453600,
+          "to": 1792162800
+        },
+        {
+          "from": 1791453600,
+          "to": 1792162800
+        }
+      ],
+      "maxSamplePixelDelta": 0.0
+    },
+    "5M": {
+      "ranges": [
+        {
+          "from": 1789637700,
+          "to": 1792161600
+        },
+        {
+          "from": 1789637700,
+          "to": 1792161600
+        }
+      ],
+      "maxSamplePixelDelta": 0.0
+    }
+  },
+  "finalChecks": {
+    "receipts": [
+      {
+        "stage": "daily",
+        "period": "daily",
+        "candleCount": 908,
+        "macdCount": 908,
+        "ranges": [
+          {
+            "from": "2026-09-01",
+            "to": "2026-09-30"
+          },
+          {
+            "from": "2026-09-01",
+            "to": "2026-09-30"
+          }
+        ],
+        "maxDelta": 0
+      },
+      {
+        "stage": "switch30m",
+        "period": "minute30",
+        "candleCount": 56,
+        "macdCount": 56,
+        "ranges": [
+          {
+            "from": 1791453600,
+            "to": 1792162800
+          },
+          {
+            "from": 1791453600,
+            "to": 1792162800
+          }
+        ],
+        "maxDelta": 0
+      },
+      {
+        "stage": "zoomMain",
+        "period": "minute30",
+        "candleCount": 56,
+        "macdCount": 56,
+        "ranges": [
+          {
+            "from": 1791469800,
+            "to": 1791898200
+          },
+          {
+            "from": 1791469800,
+            "to": 1791898200
+          }
+        ],
+        "maxDelta": 0
+      },
+      {
+        "stage": "panMacd",
+        "period": "minute30",
+        "candleCount": 56,
+        "macdCount": 56,
+        "ranges": [
+          {
+            "from": 1791545400,
+            "to": 1791990000
+          },
+          {
+            "from": 1791545400,
+            "to": 1791990000
+          }
+        ],
+        "maxDelta": 0
+      },
+      {
+        "stage": "resize",
+        "period": "minute30",
+        "candleCount": 56,
+        "macdCount": 56,
+        "ranges": [
+          {
+            "from": 1791802800,
+            "to": 1791990000
+          },
+          {
+            "from": 1791802800,
+            "to": 1791990000
+          }
+        ],
+        "maxDelta": 0
+      },
+      {
+        "stage": "hideSegments",
+        "period": "minute30",
+        "candleCount": 56,
+        "macdCount": 56,
+        "ranges": [
+          {
+            "from": 1791453600,
+            "to": 1792162800
+          },
+          {
+            "from": 1791453600,
+            "to": 1792162800
+          }
+        ],
+        "maxDelta": 0
+      },
+      {
+        "stage": "restoreSegments",
+        "period": "minute30",
+        "candleCount": 56,
+        "macdCount": 56,
+        "ranges": [
+          {
+            "from": 1791453600,
+            "to": 1792162800
+          },
+          {
+            "from": 1791453600,
+            "to": 1792162800
+          }
+        ],
+        "maxDelta": 0
+      },
+      {
+        "stage": "switch5m",
+        "period": "minute5",
+        "candleCount": 764,
+        "macdCount": 764,
+        "ranges": [
+          {
+            "from": 1789637700,
+            "to": 1792161600
+          },
+          {
+            "from": 1789637700,
+            "to": 1792161600
+          }
+        ],
+        "maxDelta": 0
+      },
+      {
+        "stage": "switchBack30m",
+        "period": "minute30",
+        "candleCount": 56,
+        "macdCount": 56,
+        "ranges": [
+          {
+            "from": 1791453600,
+            "to": 1792162800
+          },
+          {
+            "from": 1791453600,
+            "to": 1792162800
+          }
+        ],
+        "maxDelta": 0
+      }
+    ],
+    "errors": []
+  }
+}

@@ -22,12 +22,14 @@ TENCENT_PERIOD_KEYS = {
 }
 
 TENCENT_MINUTE_KEYS = {
+    KlinePeriod.MINUTE_5: "m5",
     KlinePeriod.MINUTE_1: "m1",
     KlinePeriod.MINUTE_30: "m30",
     KlinePeriod.MINUTE_60: "m60",
 }
 
 INTRADAY_LOOKBACK_DAYS = {
+    KlinePeriod.MINUTE_5: 30,
     KlinePeriod.HOUR_4: 120,
     KlinePeriod.MINUTE_60: 10,
     KlinePeriod.MINUTE_30: 10,
@@ -37,6 +39,7 @@ INTRADAY_LOOKBACK_DAYS = {
 
 def is_intraday_period(period: KlinePeriod) -> bool:
     return period in {
+        KlinePeriod.MINUTE_5,
         KlinePeriod.HOUR_4,
         KlinePeriod.MINUTE_60,
         KlinePeriod.MINUTE_30,
@@ -75,6 +78,8 @@ class MarketDataService:
         if is_intraday_period(period):
             if not is_a_share_symbol(normalized_symbol):
                 return []
+            if period == KlinePeriod.MINUTE_5:
+                return self._fetch_sina_five_minute(normalized_symbol, start_date, end_date)
             return self._fetch_tencent_intraday(normalized_symbol, period, start_date, end_date)
 
         if is_a_share_symbol(normalized_symbol):
@@ -115,6 +120,31 @@ class MarketDataService:
         end_date: date | None = None,
     ) -> list[Kline]:
         return self.fetch(symbol, KlinePeriod.DAILY, start_date, end_date)
+
+    @staticmethod
+    def _fetch_sina_five_minute(symbol, start_date, end_date):
+        # One provider per period: do not silently splice a shorter fallback
+        # with a different OHLC convention into the same history.
+        response = requests.get(
+            "https://quotes.sina.cn/cn/api/json_v2.php/CN_MarketDataService.getKLineData",
+            params={"symbol": normalize_tencent_symbol(symbol), "scale": 5,
+                    "ma": "no", "datalen": 1023},
+            headers={"User-Agent": "Mozilla/5.0"}, timeout=20,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if not isinstance(payload, list):
+            raise ValueError("新浪5分钟行情返回格式错误；未使用替代或演示数据")
+        start = start_date or date.today() - timedelta(days=29)
+        end = end_date or date.today()
+        rows = {}
+        for item in payload:
+            bar = Kline(time=datetime.fromisoformat(item["day"]),
+                        open=item["open"], high=item["high"], low=item["low"],
+                        close=item["close"], volume=item["volume"], amount=item.get("amount", 0))
+            if start <= bar.time.date() <= end:
+                rows[bar.time] = bar
+        return [rows[t] for t in sorted(rows)]
 
     @staticmethod
     def _fetch_tencent_a_share(

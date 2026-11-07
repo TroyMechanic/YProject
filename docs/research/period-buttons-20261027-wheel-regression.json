@@ -1,0 +1,92 @@
+{
+  "stages": [
+    {
+      "stage": "wheel-daily-to-60m",
+      "period": "minute60",
+      "count": 30,
+      "range": {
+        "from": 1787148000,
+        "to": 1787916600
+      },
+      "pixelDelta": 0
+    },
+    {
+      "stage": "daily-anchor-retained",
+      "anchor": 1787583600,
+      "beforeX": 564.25,
+      "afterX": 564
+    },
+    {
+      "stage": "wheel-macd-out-to-daily",
+      "period": "daily",
+      "count": 1636,
+      "range": {
+        "from": "2026-08-19",
+        "to": "2026-08-31"
+      },
+      "pixelDelta": 0
+    },
+    {
+      "stage": "reverse-anchor-retained",
+      "anchor": "2026-08-24",
+      "beforeX": 564,
+      "afterX": 564.000000000008
+    },
+    {
+      "stage": "automatic-switch-disabled",
+      "period": "daily"
+    },
+    {
+      "stage": "wheel-60m-to-30m",
+      "period": "minute30",
+      "count": 116,
+      "range": {
+        "from": 1787565600,
+        "to": 1787738400
+      },
+      "pixelDelta": 0
+    },
+    {
+      "stage": "minute-anchor-retained",
+      "anchor": 1787571000,
+      "beforeX": 241.25,
+      "afterX": 241
+    },
+    {
+      "stage": "missing-5m-keeps-30m",
+      "message": "5m在当前查看位置 2026-08-24 11:00:00 没有对应本地行情，已保留30m原图。可用范围：2026-09-01T09:35:00 至 2026-10-16T14:40:00。可同步行情后重试；历史行情未必能补回。"
+    },
+    {
+      "stage": "failed-request-keeps-30m"
+    },
+    {
+      "stage": "real-1m-boundary",
+      "period": "minute1",
+      "count": 398,
+      "range": {
+        "from": 1787825520,
+        "to": 1787926680
+      },
+      "pixelDelta": 0
+    },
+    {
+      "stage": "finest-boundary-no-request"
+    },
+    {
+      "stage": "coarsest-boundary-no-request"
+    }
+  ],
+  "errors": [],
+  "requests": [
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?startDate=2023-01-01&period=daily",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?startDate=2023-01-01&period=daily",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?period=minute60&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?period=daily&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?period=minute60&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?period=minute30&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?period=minute5&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?period=minute1&basePeriod=minute5&maxLevel=4",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?startDate=2026-08-27&endDate=2026-08-28&period=minute1",
+    "http://localhost:8000/api/stocks/002475.SZ/structure/chart?period=monthly&basePeriod=minute5&maxLevel=4"
+  ]
+}
