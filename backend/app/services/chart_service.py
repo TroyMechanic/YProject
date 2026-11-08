@@ -2,15 +2,15 @@ from __future__ import annotations
 
 from collections import defaultdict
 import json
+import re
 from datetime import date, datetime, timezone
 from threading import RLock
 from uuid import uuid4
 
-from app.models.schemas import AnalysisMetadata, ChartResponse, Kline, KlinePeriod, RuleProfile, RuleSettings
+from app.models.schemas import MacdPoint, AnalysisMetadata, ChartResponse, Kline, KlinePeriod, RuleProfile, RuleSettings
 from app.services.chan_analyzer import ChanAnalyzer
 from app.services.csv_store import CsvStore
 from app.services.market_data_service import MarketDataService
-from app.services.research_analyzer import ResearchAnalyzer
 from app.services.rule_policy import PRINCIPLES, RULE_VERSION, digest, effective_gap, engine_hash, input_hash, rule_catalog, rule_hash
 from app.services.stock_info import normalize_stock_symbol, resolve_stock_name
 
@@ -19,6 +19,21 @@ _LOCKS: dict[tuple[str, str, str], RLock] = defaultdict(RLock)
 
 class AnalysisStateError(ValueError):
     """An unreadable result must never be silently relabelled with default rules."""
+
+
+def calculate_macd(klines: list[Kline]) -> list[MacdPoint]:
+    if not klines:
+        return []
+    fast = slow = klines[0].close
+    dea = 0.0
+    points = []
+    for bar in klines:
+        fast += (bar.close - fast) * (2 / 13)
+        slow += (bar.close - slow) * (2 / 27)
+        dif = fast - slow
+        dea += (dif - dea) * (2 / 10)
+        points.append(MacdPoint(time=bar.time, dif=dif, dea=dea, histogram=2 * (dif - dea)))
+    return points
 
 
 class ChartService:
@@ -33,8 +48,15 @@ class ChartService:
     def _committed(self, symbol: str, period: KlinePeriod) -> ChartResponse | None:
         try:
             payload = self.store.load_analysis_payload(symbol, period)
-            chart = ChartResponse.model_validate_json(json.dumps(payload)) if payload is not None else None
-        except (ValueError, TypeError) as error:
+            if payload is None:
+                return None
+            raw_settings = payload["analysis"]["settings"]
+            # Older snapshots include retired settings in their signed rule hash.
+            current_settings = {field.alias: raw_settings[field.alias] for field in RuleSettings.model_fields.values()
+                                if field.alias in raw_settings}
+            migrated = {**payload, "analysis": {**payload["analysis"], "settings": current_settings}}
+            chart = ChartResponse.model_validate_json(json.dumps(migrated))
+        except (ValueError, TypeError, KeyError, AttributeError) as error:
             raise AnalysisStateError("分析快照损坏或版本不兼容；请检查备份后恢复，不能猜测原规则") from error
         if chart is not None:
             if chart.symbol != symbol or chart.period != period or chart.analysis is None:
@@ -43,9 +65,8 @@ class ChartService:
             if chart.analysis.result_hash != digest({k:v for k,v in payload.items() if k != 'analysis'}):
                 raise AnalysisStateError("分析快照内容校验失败；请恢复备份")
             metadata = chart.analysis
-            raw_settings=payload["analysis"]["settings"]
-            recorded_settings={name:raw_settings[field.alias or name] for name,field in RuleSettings.model_fields.items()
-                               if (field.alias or name) in raw_settings}
+            recorded_settings = {re.sub(r"(?<!^)(?=[A-Z])", "_", key).lower(): value
+                                 for key, value in raw_settings.items()}
             recorded_rule_hash = digest({"catalog": metadata.rule_catalog,
                                          "settings": recorded_settings,
                                          "gap": metadata.effective_min_kline_gap})
@@ -57,22 +78,21 @@ class ChartService:
         return chart
 
     @staticmethod
-    def _settings(previous: ChartResponse | None, profile: RuleProfile | None, gap: int | None, **options) -> RuleSettings:
+    def _settings(previous: ChartResponse | None, profile: RuleProfile | None, gap: int | None) -> RuleSettings:
         saved = previous.analysis.settings if previous and previous.analysis else RuleSettings()
         values=saved.model_dump()
-        values.update({key:value for key,value in options.items() if value is not None})
         values.update(rule_profile=profile if profile is not None else saved.rule_profile,
                       min_kline_gap=gap if gap is not None else saved.min_kline_gap)
         return RuleSettings(**values)
 
     def sync(self, symbol: str, period: KlinePeriod, start_date: date | None, end_date: date | None,
-             rule_profile: RuleProfile | None = None, min_kline_gap: int | None = None, **options) -> int:
+             rule_profile: RuleProfile | None = None, min_kline_gap: int | None = None) -> int:
         symbol = normalize_stock_symbol(symbol)
         klines = self.market_data.fetch(symbol, period, start_date, end_date)
         if not klines:
             return 0
         with self._lock(symbol, period):
-            settings = self._settings(self._committed(symbol, period), rule_profile, min_kline_gap, **options)
+            settings = self._settings(self._committed(symbol, period), rule_profile, min_kline_gap)
             rows = self.store.upsert_klines(symbol, period, klines)
             self._build(symbol, period, self.store.load_klines(symbol, period), settings)
             return rows
@@ -82,10 +102,9 @@ class ChartService:
 
     def _build(self, symbol: str, period: KlinePeriod, klines: list[Kline], settings: RuleSettings,
                persist: bool = True) -> ChartResponse:
-        fractals, bis, segments, zones = self.analyzer.analyze(klines, effective_gap(settings))
+        fractals, bis, segments = self.analyzer.analyze(klines, effective_gap(settings))
         chart = ChartResponse(symbol=symbol, name=resolve_stock_name(symbol), period=period,
-                              klines=klines, fractals=fractals, bis=bis, segments=segments, centralZones=zones)
-        ResearchAnalyzer().enrich(chart, settings)
+                              klines=klines, macd=calculate_macd(klines), fractals=fractals, bis=bis, segments=segments)
         chart.analysis = AnalysisMetadata(
             runId=str(uuid4()), generatedAt=datetime.now(timezone.utc), ruleVersion=RULE_VERSION,
             settings=settings, effectiveMinKlineGap=effective_gap(settings), inputHash=input_hash(klines),
@@ -112,10 +131,10 @@ class ChartService:
             return self._visible(chart, start_date, end_date)
 
     def recalculate(self, symbol: str, period: KlinePeriod, min_kline_gap: int | None = None,
-                    rule_profile: RuleProfile | None = None, **options) -> ChartResponse:
+                    rule_profile: RuleProfile | None = None) -> ChartResponse:
         symbol = normalize_stock_symbol(symbol)
         with self._lock(symbol, period):
-            settings = self._settings(self._committed(symbol, period), rule_profile, min_kline_gap, **options)
+            settings = self._settings(self._committed(symbol, period), rule_profile, min_kline_gap)
             return self._build(symbol, period, self.store.load_klines(symbol, period), settings)
 
     @staticmethod
@@ -128,13 +147,8 @@ class ChartService:
 
         return chart.model_copy(update={
             "klines": [item for item in chart.klines if intersects(item.time, item.time)],
+            "macd": [item for item in chart.macd if intersects(item.time, item.time)],
             "fractals": [item for item in chart.fractals if intersects(item.time, item.time)],
             "bis": [item for item in chart.bis if intersects(item.start_time, item.end_time)],
             "segments": [item for item in chart.segments if intersects(item.start_time, item.end_time)],
-            "central_zones": [item for item in chart.central_zones if intersects(item.start_time, item.end_time)],
-            "indicators": [item for item in chart.indicators if intersects(item.time, item.time)],
-            "signal_zones": [item for item in chart.signal_zones if intersects(item.start_time, item.end_time)],
-            "zone_relations": [item for item in chart.zone_relations if intersects(item.observed_at, item.observed_at)],
-            "divergences": [item for item in chart.divergences if intersects(item.time,item.observed_at)],
-            "trading_points": [item for item in chart.trading_points if intersects(item.time,item.observed_at)],
         })

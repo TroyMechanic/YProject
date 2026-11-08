@@ -13,7 +13,7 @@ let browser;
   const errors=[], requests=[], stages=[]; let payload;
   page.on('pageerror', e=>errors.push(e.message));
   page.on('response', async response=> {
-    if (/\/structure\/chart\?/.test(response.url()) && response.ok()) { payload = await response.json(); requests.push(response.url()); }
+    if (/\/chart\?/.test(response.url()) && response.ok()) { payload = await response.json(); requests.push(response.url()); }
   });
   await page.route('**/node_modules/.vite/deps/lightweight-charts.js*', async route=> {
     const response=await route.fetch({url:route.request().url().replace('localhost','127.0.0.1')});
@@ -25,16 +25,14 @@ let browser;
   async function ready(period){await page.waitForFunction(p=>document.querySelector('.chart-band')?.getAttribute('aria-busy')==='false' && document.querySelector('.chart-status strong')?.textContent?.includes(p),period,{timeout:180000}); await page.waitForTimeout(200);}
   async function verify(stage) {
     const actual=await page.evaluate(()=> {
-      const [main,macd]=window.__charts.filter(x=>!x.removed); if(!main)return null;
+      const [main]=window.__charts.filter(x=>!x.removed); if(!main)return null;
       const candles=main.series.find(x=>x.method==='addCandlestickSeries').rows.filter(x=>'open' in x);
-      const indicators=macd.series.find(x=>x.method==='addHistogramSeries').rows.filter(x=>'value' in x);
-      return {candles,indicators,main:main.chart.timeScale().getVisibleRange(),macd:macd.chart.timeScale().getVisibleRange(),delta:Math.max(0,...candles.map(x=>Math.abs(main.chart.timeScale().timeToCoordinate(x.time)-macd.chart.timeScale().timeToCoordinate(x.time))))};
+      return {candles,main:main.chart.timeScale().getVisibleRange()};
     });
-    assert(actual);assert.deepEqual(actual.main,actual.macd);assert(actual.delta<.5);
+    assert(actual?.main);
     const time=t=>t.includes('T')?Date.parse(t+'Z')/1000:t;
     assert.deepEqual(actual.candles,payload.klines.map(k=>({time:time(k.time),open:k.open,high:k.high,low:k.low,close:k.close})));
-    assert.deepEqual(actual.indicators,payload.indicators.map(k=>({time:time(k.time),value:k.histogram,color:k.histogram>=0?'#dc2626':'#047857'})));
-    stages.push({stage,period:payload.period,count:actual.candles.length,range:actual.main,pixelDelta:actual.delta});
+    stages.push({stage,period:payload.period,count:actual.candles.length,range:actual.main});
     console.log(JSON.stringify(stages.at(-1)));
   }
 
@@ -63,14 +61,14 @@ let browser;
   await ready('60m');await verify('wheel-daily-to-60m');
   assert.equal(requests.length-n,1,'one request per continuous wheel burst');
   await assertAnchor(stamp('2026-08-24T15:00:00'),x,'daily-anchor-retained');
-  // Reverse zoom in the MACD pane returns to the original daily period.
+  // Reverse zoom in the price chart returns to the original daily period.
   await page.waitForTimeout(400);
   for(let i=0;i<12;i++){
     if((await page.locator('.chart-status strong').innerText()).includes('日K')) break;
-    x=await locate(stamp('2026-08-24T15:00:00'),'.macd-surface');
+    x=await locate(stamp('2026-08-24T15:00:00'),'.chart-surface');
     await page.mouse.wheel(0,120);await page.waitForTimeout(400);
   }
-  await ready('日K');await verify('wheel-macd-out-to-daily');await assertAnchor('2026-08-24',x,'reverse-anchor-retained');
+  await ready('日K');await verify('wheel-out-to-daily');await assertAnchor('2026-08-24',x,'reverse-anchor-retained');
   // Disabling semantic zoom must preserve ordinary wheel zoom and period.
   await page.getByLabel('滚轮自动切换周期',{exact:true}).uncheck();
   await viewport('2026-08-19','2026-08-28');await locate('2026-08-24');const off=requests.length;
@@ -97,12 +95,12 @@ let browser;
   stages.push({stage:'missing-5m-keeps-30m',message:await page.locator('.chart-band .status-line').innerText()});
   // An HTTP failure similarly leaves the current chart and path untouched.
   await viewport(stamp('2026-08-25T10:00:00'),stamp('2026-08-25T11:30:00'));await page.waitForTimeout(400);
-  await page.route('**/api/stocks/*/structure/chart?*',route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({detail:'轮缩放错误验证'})}));
+  await page.route('**/api/stocks/*/chart?*',route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({detail:'轮缩放错误验证'})}));
   await locate(stamp('2026-08-25T11:00:00'));await page.mouse.wheel(0,-100);
   await page.locator('.chart-band .status-line').filter({hasText:'周期切换失败，已保留原图'}).waitFor();
   assert((await page.locator('.chart-status strong').innerText()).includes('30m'));
   assert.deepEqual(await page.evaluate(()=>window.__charts.filter(x=>!x.removed)[0].series.find(x=>x.method==='addCandlestickSeries').rows),stored30);
-  await page.unroute('**/api/stocks/*/structure/chart?*');stages.push({stage:'failed-request-keeps-30m'});
+  await page.unroute('**/api/stocks/*/chart?*');stages.push({stage:'failed-request-keeps-30m'});
 
   // Smallest and largest supported periods retain normal wheel zoom without requests.
   await page.locator('.period-control').getByRole('button',{name:'1m',exact:true}).click();await ready('1m');

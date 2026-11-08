@@ -125,7 +125,7 @@ Stroke min gap uses mergedIndex, not raw klineIndex.
 Default minKlineGap is 1.
 Stroke price validation is strict: top.price > bottom.elementHigh and bottom.price < top.elementLow.
 The latest stroke is marked unconfirmed.
-Segments use the strict feature-sequence approach, including feature inclusion handling, no-gap confirmation, gap secondary confirmation, and an unconfirmed current segment.
+Use the v4.5.0 segment rules in docs/chan-rules.md section 13: both highs and lows set direction, feature sequences confirm ends, MACD only warns.
 Central zones use at least three consecutive confirmed segments with strict overlap: ZD=max(segment lows), ZG=min(segment highs), and ZD < ZG. Extension keeps the initial ZD/ZG fixed; DD/GG cover all member segments.
 Supported periods are daily, weekly, monthly, A-share 4h, 60min, 30min, and 1min. Intraday records must preserve full datetime values throughout CSV, API, chart, fractal, stroke, segment, and central-zone processing.
 The default 4h lookback is 120 calendar days; 60min, 30min, and 1min keep the 10-day default.
@@ -171,10 +171,10 @@ Follow `docs/development.md` for changes. Executable profiles and principle IDs 
 
 Never auto-regenerate golden expectations merely to pass tests. Explain accepted differences with fixed input snapshots. Current central zones are segment-overlap approximations, not recursive completed-movement zones or trading signals. Date windows only crop display: recalculate full local history. Preserve saved settings on sync. API results must come from one committed snapshot; CSVs are readable exports. Historical confirmed geometry is stable only when existing input and rules remain unchanged.
 
-Recursive structure rules live in recursive_analyzer.py and hierarchy_service.py. Keep display period, base period and structural layer distinct. L0 uses feature-sequence segment seeds; parents require child zones and explicitly confirmed reverse departure/retest. Never silently fall back to the legacy model when base history is insufficient. Compound snapshots retain full base inputs and source metadata. Synchronize principles R01/R02/R03 and docs/decisions/0003-recursive-structure.md for changes.
+Recursive structure rules live in recursive_analyzer.py and hierarchy_service.py. Keep display period, base period and structural layer distinct. L0 uses structurally confirmed segment seeds; parents require child zones and explicitly confirmed reverse departure/retest. Never silently fall back to the legacy model when base history is insufficient. Compound snapshots retain full base inputs and source metadata. Synchronize principles R01/R02/R03 and docs/decisions/0003-recursive-structure.md for changes.
 
-5m source uses Sina (up to 1023 bars, share volume without Tencent x100 conversion); other intraday periods retain Tencent. Segment boundary inclusion has the explicit reverse-triplet branch documented in rules section 31; do not merge the pre-boundary feature with the first reverse stroke in that branch.
+5m source uses Sina (up to 1023 bars, share volume without Tencent x100 conversion); other intraday periods retain Tencent. Before v4.4.0, segment boundary inclusion had the explicit reverse-triplet branch documented in rules section 31; do not merge the pre-boundary feature with the first reverse stroke in that branch.
 
-Initial segment seeding additionally requires the third stroke to strictly advance beyond the first stroke's endpoint in the same direction. This cold-start condition applies only to initial-start selection; reverse candidates with a contained third stroke retain the wait-for-break rule. See rules section 32.
+Initial segment seeding additionally requires the third stroke to strictly advance beyond the first stroke's endpoint in the same direction. This cold-start condition applies only to initial-start selection; subsequent segments share the structurally confirmed turning point. See rules section 32.
 
 Stroke construction consumes all detected fractals with finalized right standard candles (right.klineIndex < last standard originalIndex); do not pre-filter away historical same-type confirmation evidence. Display filtering is separate. A new included raw candle does not finalize the right standard candle. See F04 and rules section 33.

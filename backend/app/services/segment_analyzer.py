@@ -33,12 +33,13 @@ class _SegmentEnd:
 
 
 class SegmentAnalyzer:
-    def build_segments(self, bis: list[Bi]) -> list[Segment]:
+    def build_segments(self, bis: list[Bi], start_bi_index: int | None = None) -> list[Segment]:
         if len(bis) < 3:
             return []
 
         segments: list[Segment] = []
-        start_bi_index = self._find_initial_start(bis, 0)
+        if start_bi_index is None:
+            start_bi_index = self._find_initial_start(bis, 0)
 
         while start_bi_index is not None and start_bi_index + 2 < len(bis):
             direction = bis[start_bi_index].direction
@@ -63,9 +64,10 @@ class SegmentAnalyzer:
         direction: BiDirection,
     ) -> _SegmentEnd | None:
         features: list[_Feature] = []
+        boundary_turns: set[int] = set()
         for raw_feature in self._raw_features(bis, start_bi_index, direction):
             boundary = self._boundary_inclusion_end(
-                bis, start_bi_index, direction, raw_feature.end_bi_index
+                bis, start_bi_index, direction, raw_feature.end_bi_index, boundary_turns
             )
             if boundary is not None:
                 return boundary
@@ -79,7 +81,7 @@ class SegmentAnalyzer:
                     if direction == BiDirection.UP
                     else middle.low_source_bi_index
                 )
-                if turn_bi_index - start_bi_index < 3:
+                if turn_bi_index in boundary_turns or turn_bi_index - start_bi_index < 3:
                     continue
                 prices = [b.start_price for b in bis[start_bi_index:turn_bi_index + 1]]
                 if direction == BiDirection.UP and (bis[turn_bi_index].start_price != max(prices)
@@ -118,7 +120,7 @@ class SegmentAnalyzer:
         return None
 
     def _boundary_inclusion_end(
-        self, bis: list[Bi], start: int, direction: BiDirection, available: int
+        self, bis: list[Bi], start: int, direction: BiDirection, available: int, boundary_turns: set[int]
     ) -> _SegmentEnd | None:
         """Lesson 71: do not merge across a hypothesized segment boundary.
 
@@ -135,8 +137,6 @@ class SegmentAnalyzer:
                 continue
             left = before[-1]
             middle = self._feature_from_bi(bis[turn], turn)
-            if not self._has_include_relation(left, middle):
-                continue
             if direction == BiDirection.UP:
                 valid = (middle.high > left.high and middle.low < left.low
                          and middle.high == max(b.start_price for b in bis[start:turn + 1]))
@@ -145,6 +145,7 @@ class SegmentAnalyzer:
                          and middle.low == min(b.start_price for b in bis[start:turn + 1]))
             if not valid:
                 continue
+            boundary_turns.add(turn)
             # A contained third stroke is undecided: continue until the first
             # reverse extreme is broken, or the original direction resumes.
             for index in range(turn + 1, available + 1):
@@ -256,7 +257,7 @@ class SegmentAnalyzer:
             breakType=SegmentBreakType.UNCONFIRMED,
             featureSequence=self._to_schema_features(features, direction),
             reasons=[
-                f"候选线段前三笔存在价格重叠区间 {overlap_low:.2f} 至 {overlap_high:.2f}",
+                f"当前线段前三笔存在价格重叠区间 {overlap_low:.2f} 至 {overlap_high:.2f}",
                 "尚未出现满足严格特征序列规则的确认破坏",
                 "后续笔可能延伸当前线段或确认新的反向线段",
             ],
@@ -421,7 +422,9 @@ class SegmentAnalyzer:
             first, third = bis[index], bis[index + 2]
             advances = (third.end_price > first.end_price if first.direction == BiDirection.UP
                         else third.end_price < first.end_price)
-            if advances:
+            base_advances = (third.start_price > first.start_price if first.direction == BiDirection.UP
+                             else third.start_price < first.start_price)
+            if advances and base_advances:
                 return index
         return None
 

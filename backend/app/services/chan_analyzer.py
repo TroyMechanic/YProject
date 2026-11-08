@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from app.models.schemas import Bi, BiDirection, CentralZone, Fractal, FractalElement, FractalType, Kline, Segment
-from app.services.central_zone_analyzer import CentralZoneAnalyzer
+from app.models.schemas import Bi, BiDirection,  Fractal, FractalElement, FractalType, Kline, Segment
 from app.services.segment_analyzer import SegmentAnalyzer
 
 
@@ -23,7 +22,7 @@ class ChanAnalyzer:
         self,
         klines: list[Kline],
         min_kline_gap: int = 1,
-    ) -> tuple[list[Fractal], list[Bi], list[Segment], list[CentralZone]]:
+    ) -> tuple[list[Fractal], list[Bi], list[Segment]]:
         if not 1 <= min_kline_gap <= 20:
             raise ValueError("标准K线最小间隔必须在1至20之间")
         if any(left.time >= right.time for left, right in zip(klines, klines[1:])):
@@ -36,8 +35,25 @@ class ChanAnalyzer:
         stable_fractals = self.stroke_fractals(fractals, merged)
         bis = self.build_bis(stable_fractals, min_kline_gap)
         segments = SegmentAnalyzer().build_segments(bis)
-        central_zones = CentralZoneAnalyzer().build_central_zones(segments)
-        return valid_fractals, bis, segments, central_zones
+        # Preserve evidence as it was first observable, before later inclusions.
+        confirmed_segments = {}
+        segment_start = None
+        final_keys = {(s.start_time, s.end_time) for s in segments if s.confirmed}
+        for fractal, strokes in self.bi_updates(stable_fractals, min_kline_gap):
+            observed = klines[fractal.elements[-1].kline_index + 1].time
+            if len(strokes) >= 2:
+                previous = bis[len(strokes) - 2]
+                if previous.confirmed_at is None:
+                    previous.confirmed_at = observed
+            if final_keys:
+                for segment in SegmentAnalyzer().build_segments(strokes, segment_start):
+                    key = (segment.start_time, segment.end_time)
+                    if segment.confirmed and key in final_keys:
+                        segment.confirmed_at = observed
+                        confirmed_segments[key] = segment
+                        final_keys.remove(key)
+                        segment_start = segment.end_bi_index + 1
+        return valid_fractals, bis, [confirmed_segments.get((s.start_time, s.end_time), s) for s in segments]
 
     @staticmethod
     def stroke_fractals(fractals: list[Fractal], merged: list[MergedKline]) -> list[Fractal]:
@@ -165,6 +181,15 @@ class ChanAnalyzer:
 
     def build_bis(self, fractals: list[Fractal], min_kline_gap: int = 1) -> list[Bi]:
         bis: list[Bi] = []
+        for _, bis in self.bi_updates(fractals, min_kline_gap):
+            pass
+        if bis:
+            bis[-1].reasons.append("当前笔已成立，终点可随新极值延伸，待下一笔成立时锁定")
+        return bis
+
+    def bi_updates(self, fractals: list[Fractal], min_kline_gap: int):
+        """Yield the current strokes whenever a finalized fractal changes their geometry."""
+        bis: list[Bi] = []
         last: Fractal | None = None
         last_start: Fractal | None = None
 
@@ -184,6 +209,8 @@ class ChanAnalyzer:
                         previous.end_index = item.kline_index
                         previous.reasons = self._build_bi_reasons(last_start, item, min_kline_gap, previous.direction)
                     last = item
+                    if bis:
+                        yield item, bis
                 continue
 
             if self._merged_gap(last, item) < min_kline_gap:
@@ -201,17 +228,15 @@ class ChanAnalyzer:
                 direction=direction,
                 startIndex=last.kline_index,
                 endIndex=item.kline_index,
-                confirmed=True,
+                confirmed=False,
                 reasons=self._build_bi_reasons(last, item, min_kline_gap, direction),
             )
+            if bis:
+                bis[-1].confirmed = True
             bis.append(bi)
             last_start = last
             last = item
-
-        if bis:
-            bis[-1].confirmed = False
-            bis[-1].reasons.append("这是当前最后一笔，后续K线可能导致修正，暂标记为未确认")
-        return bis
+            yield item, bis
 
     def _build_bi_reasons(
         self,

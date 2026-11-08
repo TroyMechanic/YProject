@@ -12,6 +12,7 @@ backend/app/data/analyzed/*_analysis.json
 backend/app/data/analyzed/runs/
 backend/app/data/**/*.tmp
 !backend/app/data/raw/.gitkeep
+!backend/app/data/raw/000001.SH_minute1.csv
 !backend/app/data/analyzed/.gitkeep
 
 backend/app/data/analyzed/*_hierarchy.json

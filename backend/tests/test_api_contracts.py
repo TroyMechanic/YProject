@@ -56,6 +56,7 @@ def test_http_rules_sync_chart_recalculate_and_saved_parameters(api_service):
     assert status==200
     status,chart=asyncio.run(request('GET','/api/stocks/DEMO/chart?startDate=2024-01-05&endDate=2024-01-06'))
     assert status==200 and len(chart['klines'])==2
+    assert set(chart) == {'symbol', 'name', 'period', 'klines', 'fractals', 'bis', 'segments', 'analysis', 'macd'}
     assert chart['analysis']['sourceCount']==9 and chart['analysis']['effectiveMinKlineGap']==5
     status,result=asyncio.run(request('POST','/api/stocks/DEMO/chan/recalculate',{'startDate':'2024-01-05','endDate':'2024-01-06','minKlineGap':1,'ruleProfile':'legacy'}))
     assert status==200 and result['biCount']==1 and result['analysis']['sourceCount']==9
@@ -85,16 +86,3 @@ def test_http_corrupt_snapshot_conflict_and_invalid_query(api_service):
     assert status==422
 
 
-def test_recursive_http_distinct_base_display_validation_and_saved_depth(api_service):
-    status,chart=asyncio.run(request('GET','/api/stocks/002475/structure/chart?period=daily&basePeriod=minute5&maxLevel=3'))
-    assert status==200 and chart['period']=='daily' and chart['hierarchy']['basePeriod']=='minute5'
-    assert chart['hierarchy']['maxLevel']==3 and chart['hierarchy']['layers']==[]
-    status,again=asyncio.run(request('GET','/api/stocks/002475/structure/chart?period=daily'))
-    assert status==200 and again['hierarchy']['maxLevel']==3
-    status,_=asyncio.run(request('GET','/api/stocks/002475/structure/chart?basePeriod=daily'))
-    assert status==422
-    status,_=asyncio.run(request('GET','/api/stocks/002475/structure/chart?maxLevel=9'))
-    assert status==422
-    status,result=asyncio.run(request('POST','/api/stocks/002475/structure/sync',{'period':'daily','basePeriod':'minute5','maxLevel':2,'divergenceRatio':.6}))
-    assert status==200 and result['hierarchy']['baseAnalysis']['settings']['divergenceRatio']==.6
-    assert result['hierarchy']['baseAnalysis']['sourceCount']==9

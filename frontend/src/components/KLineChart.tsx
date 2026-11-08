@@ -9,11 +9,8 @@ import {
   SeriesMarker,
   WhitespaceData,
 } from 'lightweight-charts';
-import type { Bi, CentralZone, ChartResponse, Fractal, KlinePeriod, Momentum, Segment, SignalZone, TradingPoint } from '../types/chart';
-import { pointLabel, pointSource, strengthLabel } from '../utils/analysisLabels';
+import type { Bi, ChartResponse, Fractal, Segment } from '../types/chart';
 import { buildTimeline, visibleCandleRange } from '../utils/chartTimeline';
-import { analysisWindow, candleWindow, smallerPeriods } from '../utils/rangeNavigation';
-import type { AnalysisWindow } from '../utils/rangeNavigation';
 import { makeWheelFocus, wheelLogicalRange, ZOOM_IN_SPACING, ZOOM_OUT_SPACING, RETURN_EXPANSION } from '../utils/wheelNavigation';
 import type { WheelFocus, ZoomDirection } from '../utils/wheelNavigation';
 import { periodButtonRange } from '../utils/wheelNavigation';
@@ -21,8 +18,6 @@ import type { PeriodViewport } from '../utils/wheelNavigation';
 
 interface Props {
   data: ChartResponse;
-  focusWindow?: AnalysisWindow;
-  onDrillDown?: (period: KlinePeriod, window: AnalysisWindow, viewport: AnalysisWindow | null) => void;
   wheelFocus?: WheelFocus;
   wheelCanReturn?: boolean;
   onWheelNavigate?: (direction: ZoomDirection, focus: WheelFocus) => Promise<boolean>;
@@ -42,46 +37,21 @@ interface HoverKline {
   amplitude: number | null;
 }
 
-interface CentralZoneRect {
-  zone: CentralZone;
-  index: number;
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-  signalZone?: SignalZone;
-}
-
 type SelectedExplanation =
   | { kind: 'fractal'; item: Fractal }
   | { kind: 'bi'; item: Bi }
   | { kind: 'segment'; item: Segment }
-  | { kind: 'centralZone'; item: CentralZone }
-  | { kind: 'tradingPoint'; item: TradingPoint[] }
-  | { kind: 'signalZone'; item: SignalZone }
   | null;
 
-export function KLineChart({ data, focusWindow, onDrillDown, wheelFocus, wheelCanReturn, onWheelNavigate, periodViewport, readViewport }: Props) {
+export function KLineChart({ data, wheelFocus, wheelCanReturn, onWheelNavigate, periodViewport, readViewport }: Props) {
   const shellRef = useRef<HTMLDivElement | null>(null);
-  const containerRef = useRef<HTMLDivElement | null>(null);
   const macdRef = useRef<HTMLDivElement | null>(null);
-  const chartRef = useRef<ReturnType<typeof createChart> | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [hoverKline, setHoverKline] = useState<HoverKline | null>(null);
   const [selected, setSelected] = useState<SelectedExplanation>(null);
-  const [centralZoneRects, setCentralZoneRects] = useState<CentralZoneRect[]>([]);
   const [showBis, setShowBis] = useState(true);
   const [showSegments, setShowSegments] = useState(true);
-  const [showCentralZones, setShowCentralZones] = useState(false);
-  const [showSignalZones, setShowSignalZones] = useState(true);
-  const [showSignals, setShowSignals] = useState(true);
-  const [showCandidates, setShowCandidates] = useState(true);
   const [showFractals, setShowFractals] = useState(false);
-  const [signalPlacement, setSignalPlacement] = useState<'observed' | 'endpoint'>('observed');
-  const [rangeSelection, setRangeSelection] = useState<AnalysisWindow | null>(null);
-  const [picking, setPicking] = useState(false);
-  const pickRef = useRef<{ active: boolean; anchor: string | null }>({ active: false, anchor: null });
-  const targets = smallerPeriods(data.period);
-  const [targetPeriod, setTargetPeriod] = useState<KlinePeriod>(targets[0]?.value ?? 'minute1');
   const [autoPeriod, setAutoPeriod] = useState(true);
   const wheelOptions = useRef({ onWheelNavigate, wheelCanReturn, autoPeriod });
   wheelOptions.current = { onWheelNavigate, wheelCanReturn, autoPeriod };
@@ -91,23 +61,8 @@ export function KLineChart({ data, focusWindow, onDrillDown, wheelFocus, wheelCa
   }, [periodViewport]);
 
   useEffect(() => {
-    setRangeSelection(null);
-    setPicking(false);
-    pickRef.current = { active: false, anchor: null };
-    setTargetPeriod(smallerPeriods(data.period)[0]?.value ?? 'minute1');
     wheelState.current.blocked = '';
   }, [data.symbol, data.period, data.klines]);
-
-  function currentWindow(): AnalysisWindow | null {
-    const visible = chartRef.current?.timeScale().getVisibleRange();
-    return visible ? candleWindow(data.klines.map((bar) => bar.time), formatChartTime(visible.from), formatChartTime(visible.to), data.period) : null;
-  }
-
-  function chooseWindow(window: AnalysisWindow | null) {
-    pickRef.current = { active: false, anchor: null };
-    setPicking(false);
-    setRangeSelection(window);
-  }
 
   const klineByTime = useMemo(() => {
     const result = new Map<string, HoverKline>();
@@ -138,10 +93,10 @@ export function KLineChart({ data, focusWindow, onDrillDown, wheelFocus, wheelCa
   }, [data.fractals]);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || !macdRef.current) return;
     setSelected(null);
     setHoverKline(null);
-    const timeline = buildTimeline(data.klines, data.indicators, [
+    const timeline = buildTimeline(data.klines, [
       ...(showBis ? data.bis.flatMap((bi) => [bi.startTime, bi.endTime]) : []),
       ...(showSegments ? data.segments.flatMap((segment) => [segment.startTime, segment.endTime]) : []),
     ]);
@@ -172,7 +127,6 @@ export function KLineChart({ data, focusWindow, onDrillDown, wheelFocus, wheelCa
         mode: 1,
       },
     });
-    chartRef.current = chart;
 
     const candleSeries = chart.addCandlestickSeries({
       upColor: '#dc2626',
@@ -196,97 +150,42 @@ export function KLineChart({ data, focusWindow, onDrillDown, wheelFocus, wheelCa
         shape: 'circle',
         text: item.type === 'TOP' ? '顶' : '底',
       })) : [];
-    const visibleSignals = showSignals ? data.tradingPoints.filter((point) => showCandidates || point.confirmed) : [];
-    const signalsByTime = new Map<string, TradingPoint[]>();
-    visibleSignals.forEach((point) => {
-      const time = signalPlacement === 'endpoint' ? (point.displayEndpointTime ?? point.time) : (point.displayTime ?? point.observedAt);
-      if (!klineByTime.has(chartTimeKey(time))) return;
-      const key = chartTimeKey(time);
-      signalsByTime.set(key, [...(signalsByTime.get(key) ?? []), point]);
-      markers.push({ time: toChartTime(time), id: point.id, position: point.side === 'BUY' ? 'belowBar' : 'aboveBar',
-        shape: point.side === 'BUY' ? 'arrowUp' : 'arrowDown', color: point.confirmed ? point.side === 'BUY' ? '#dc2626' : '#047857' : '#b45309',
-        size: 2, text: `${pointLabel(point.type)}${point.confirmed ? '' : '?'}·${pointSource(point)}` });
-    });
-    const barOrder = new Map(data.klines.map((bar, index) => [chartTimeKey(bar.time), index]));
-    markers.sort((a, b) => (barOrder.get(formatChartTime(a.time)) ?? 0) - (barOrder.get(formatChartTime(b.time)) ?? 0));
     candleSeries.setMarkers(markers);
 
-    const macdChart = macdRef.current ? createChart(macdRef.current, {
-      width: containerRef.current.clientWidth, height: 170,
-      layout: { background: { type: ColorType.Solid, color: '#f8fafc' }, textColor: '#475569' },
-      timeScale: { timeVisible: isIntradayData(data) },
-      rightPriceScale: { minimumWidth: 96 },
-    }) : null;
-    if (macdChart) {
-      const indicatorsByTime = new Map(data.indicators.map((item) => [chartTimeKey(item.time), item]));
-      const histogram = macdChart.addHistogramSeries({ priceLineVisible: false, lastValueVisible: false });
-      histogram.setData(timeline.map((time) => {
-        const point = indicatorsByTime.get(time);
-        return point ? { time: toChartTime(time), value: point.histogram, color: point.histogram >= 0 ? '#dc2626' : '#047857' }
-          : { time: toChartTime(time) };
-      }));
-      const dif = macdChart.addLineSeries({ color: '#2563eb', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
-      const dea = macdChart.addLineSeries({ color: '#d97706', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
-      dif.setData(timeline.map((time) => {
-        const point = indicatorsByTime.get(time);
-        return point ? { time: toChartTime(time), value: point.dif } : { time: toChartTime(time) };
-      }));
-      dea.setData(timeline.map((time) => {
-        const point = indicatorsByTime.get(time);
-        return point ? { time: toChartTime(time), value: point.dea } : { time: toChartTime(time) };
-      }));
-    }
 
     if (showBis) {
       data.bis.forEach((bi) => {
         const line = chart.addLineSeries({
-          color: bi.direction === 'UP' ? '#2563eb' : '#ea580c',
-          lineWidth: bi.confirmed ? 2 : 1,
-          lineStyle: bi.confirmed ? 0 : 2,
+          color: '#2563eb',
+          lineWidth: 2,
           priceLineVisible: false,
           lastValueVisible: false,
         });
         line.setData(toBiLineData(bi));
+        if (!bi.confirmed) {
+          line.setMarkers([{ time: toChartTime(bi.endTime), position: 'belowBar',
+            shape: 'circle', size: 0.6, color: '#2563eb', text: '笔终点待定' }]);
+        }
       });
     }
 
     if (showSegments) {
       data.segments.forEach((segment) => {
         const line = chart.addLineSeries({
-          color: segment.direction === 'UP' ? '#be123c' : '#047857',
-          lineWidth: segment.confirmed ? 4 : 3,
-          lineStyle: segment.confirmed ? 0 : 2,
+          color: '#dc2626',
+          lineWidth: 4,
           pointMarkersVisible: true,
           pointMarkersRadius: 4,
           priceLineVisible: false,
           lastValueVisible: false,
         });
         line.setData(toSegmentLineData(segment));
+        if (!segment.confirmed) {
+          line.setMarkers([{ time: toChartTime(segment.endTime), position: 'aboveBar',
+            shape: 'circle', size: 0.6, color: '#dc2626', text: '段终点待定' }]);
+        }
       });
     }
-
-    const updateCentralZoneRects = () => {
-      if (!showCentralZones && !showSignalZones) {
-        setCentralZoneRects([]);
-        return;
-      }
-      setCentralZoneRects(
-        [...(showCentralZones ? data.centralZones : []).flatMap((zone, index) => {
-          const bounds = centralZoneBounds(
-            zone,
-            chart,
-            candleSeries,
-            data.klines[0]?.time,
-            data.klines[data.klines.length - 1]?.time,
-          );
-          return bounds ? [{ zone, index, ...bounds }] : [];
-        }), ...(showSignalZones ? data.signalZones : []).flatMap((signalZone, index) => {
-          const zone = displaySignalZone(signalZone);
-          const bounds = centralZoneBounds(zone, chart, candleSeries, data.klines[0]?.time, data.klines[data.klines.length - 1]?.time);
-          return bounds ? [{ zone, index, signalZone, ...bounds }] : [];
-        })],
-      );
-    };
 
     chart.subscribeCrosshairMove((param) => {
       if (!param.time || !param.point || param.point.x < 0 || param.point.y < 0) {
@@ -298,29 +197,6 @@ export function KLineChart({ data, focusWindow, onDrillDown, wheelFocus, wheelCa
 
     chart.subscribeClick((param) => {
       if (!param.time || !param.point) {
-        return;
-      }
-      if (pickRef.current.active) {
-        return;
-      }
-      const clickedSignal = visibleSignals.find((point) => point.id === param.hoveredObjectId);
-      const sameTimeSignals = signalsByTime.get(formatChartTime(param.time));
-      if (clickedSignal) {
-        setSelected({ kind: 'tradingPoint', item: [clickedSignal] });
-        return;
-      }
-      const clickedCentralZone = showCentralZones
-        ? findCentralZone(
-            data.centralZones,
-            param.point,
-            chart,
-            candleSeries,
-            data.klines[0]?.time,
-            data.klines[data.klines.length - 1]?.time,
-          )
-        : null;
-      if (clickedCentralZone) {
-        setSelected({ kind: 'centralZone', item: clickedCentralZone });
         return;
       }
       const clickedSegment = showSegments
@@ -339,26 +215,62 @@ export function KLineChart({ data, focusWindow, onDrillDown, wheelFocus, wheelCa
         return;
       }
 
-      if (sameTimeSignals?.length) {
-        setSelected({ kind: 'tradingPoint', item: sameTimeSignals });
-        return;
-      }
-
       const clickedFractal = fractalByTime.get(formatChartTime(param.time));
       if (clickedFractal) {
         setSelected({ kind: 'fractal', item: clickedFractal });
       }
     });
 
-    const baseBars = data.hierarchy?.baseKlines;
-    const focus = focusWindow ?? (data.period === 'daily' && baseBars?.length ? {
-      start: baseBars[0].time.slice(0, 10), end: baseBars[baseBars.length - 1].time.slice(0, 10),
-    } : undefined);
+    const indicatorChart = createChart(macdRef.current, {
+      width: containerRef.current.clientWidth, height: 180,
+      layout: chart.options().layout,
+      grid: chart.options().grid,
+      rightPriceScale: { minimumWidth: 96 },
+      timeScale: { timeVisible: isIntradayData(data), secondsVisible: false },
+    });
+    const seriesOptions = { priceLineVisible: false, lastValueVisible: false };
+    const histogram = indicatorChart.addHistogramSeries(seriesOptions);
+    const dif = indicatorChart.addLineSeries({ ...seriesOptions, color: '#2563eb', lineWidth: 1 });
+    const dea = indicatorChart.addLineSeries({ ...seriesOptions, color: '#d97706', lineWidth: 1 });
+    const points = new Map(data.macd.map((item) => [chartTimeKey(item.time), item]));
+    const rows = (field: 'histogram' | 'dif' | 'dea') => timeline.map((stamp) => {
+      const point = points.get(stamp);
+      const time = toChartTime(stamp);
+      if (!point) return { time };
+      if (field === 'histogram') return { time, value: point.histogram, color: point.histogram >= 0 ? '#dc2626' : '#047857' };
+      return { time, value: point[field] };
+    });
+    histogram.setData(rows('histogram'));
+    dif.setData(rows('dif'));
+    dea.setData(rows('dea'));
+
+    const syncRange = (target: typeof chart) => (range: { from: number; to: number } | null) => {
+      if (!range) return;
+      const current = target.timeScale().getVisibleLogicalRange();
+      if (!current || Math.abs(current.from - range.from) > 0.001 || Math.abs(current.to - range.to) > 0.001)
+        target.timeScale().setVisibleLogicalRange(range);
+    };
+    const toIndicator = syncRange(indicatorChart);
+    const toPrice = syncRange(chart);
+    chart.timeScale().subscribeVisibleLogicalRangeChange(toIndicator);
+    indicatorChart.timeScale().subscribeVisibleLogicalRangeChange(toPrice);
+    chart.subscribeCrosshairMove(({ time }) => {
+      const point = time && points.get(formatChartTime(time));
+      if (time && point) indicatorChart.setCrosshairPosition(point.dif, time, dif);
+      else indicatorChart.clearCrosshairPosition();
+    });
+    indicatorChart.subscribeCrosshairMove(({ time }) => {
+      const candle = time && candlesByTime.get(formatChartTime(time));
+      if (time && candle) chart.setCrosshairPosition(candle.close, time, candleSeries);
+      else chart.clearCrosshairPosition();
+    });
+
     const initialCandleRange = periodViewport ? periodButtonRange(timeline, data.klines, data.period, chart.timeScale().width(), periodViewport)
       : wheelFocus ? wheelLogicalRange(timeline, data.klines, data.period, wheelFocus)
-      : visibleCandleRange(timeline, data.klines, focus, !focusWindow);
+      : visibleCandleRange(timeline, data.klines);
     if (initialCandleRange) chart.timeScale().setVisibleLogicalRange(initialCandleRange);
     else chart.timeScale().fitContent();
+    toIndicator(chart.timeScale().getVisibleLogicalRange());
     if (readViewport) readViewport.current = () => {
       const scale = chart.timeScale();
       const visible = scale.getVisibleRange();
@@ -370,31 +282,10 @@ export function KLineChart({ data, focusWindow, onDrillDown, wheelFocus, wheelCa
       return makeWheelFocus(data.klines.map((bar) => bar.time), data.period,
         formatChartTime(visible.from), formatChartTime(visible.to), anchor.time, 0.5);
     };
-    let syncingRange = false;
-    const syncToMacd = (range: { from: number; to: number } | null) => {
-      if (!range || !macdChart || syncingRange) return;
-      syncingRange = true;
-      macdChart.timeScale().setVisibleLogicalRange(range);
-      syncingRange = false;
-    };
-    const syncToMain = (range: { from: number; to: number } | null) => {
-      if (!range || syncingRange) return;
-      syncingRange = true;
-      chart.timeScale().setVisibleLogicalRange(range);
-      syncingRange = false;
-    };
-    const initialRange = chart.timeScale().getVisibleLogicalRange();
-    if (initialRange) syncToMacd(initialRange);
-    chart.timeScale().subscribeVisibleLogicalRangeChange(syncToMacd);
-    macdChart?.timeScale().subscribeVisibleLogicalRangeChange(syncToMain);
-    chart.timeScale().subscribeVisibleLogicalRangeChange(updateCentralZoneRects);
-    requestAnimationFrame(updateCentralZoneRects);
-    const initialZoneRenderTimer = window.setTimeout(updateCentralZoneRects, 100);
     const handleResize = () => {
       if (containerRef.current) {
         chart.applyOptions({ width: containerRef.current.clientWidth });
-        macdChart?.applyOptions({ width: containerRef.current.clientWidth });
-        requestAnimationFrame(updateCentralZoneRects);
+        indicatorChart.applyOptions({ width: containerRef.current.clientWidth });
       }
     };
     window.addEventListener('resize', handleResize);
@@ -402,7 +293,7 @@ export function KLineChart({ data, focusWindow, onDrillDown, wheelFocus, wheelCa
     const initialCount = initialCandleRange ? initialCandleRange.to - initialCandleRange.from + 1 : 0;
     const wheelSurface = shellRef.current;
     const handleWheel = (event: WheelEvent) => {
-      if (!event.deltaY || Math.abs(event.deltaX) > Math.abs(event.deltaY) || pickRef.current.active) return;
+      if (!event.deltaY || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
       if ((event.target as Element).closest('button, input, select, .explanation-panel, .chart-layer-controls')) return;
       const surface = [containerRef.current, macdRef.current].find((element) => {
         const bounds = element?.getBoundingClientRect();
@@ -454,112 +345,35 @@ export function KLineChart({ data, focusWindow, onDrillDown, wheelFocus, wheelCa
     wheelSurface?.addEventListener('wheel', handleWheel, { passive: false, capture: true });
 
     return () => {
-      window.clearTimeout(initialZoneRenderTimer);
       window.removeEventListener('resize', handleResize);
       wheelSurface?.removeEventListener('wheel', handleWheel, true);
       if (readViewport) readViewport.current = null;
-      chart.timeScale().unsubscribeVisibleLogicalRangeChange(updateCentralZoneRects);
-      chart.timeScale().unsubscribeVisibleLogicalRangeChange(syncToMacd);
-      macdChart?.timeScale().unsubscribeVisibleLogicalRangeChange(syncToMain);
-      macdChart?.remove();
-      chartRef.current = null;
+      chart.timeScale().unsubscribeVisibleLogicalRangeChange(toIndicator);
+      indicatorChart.timeScale().unsubscribeVisibleLogicalRangeChange(toPrice);
+      indicatorChart.remove();
       chart.remove();
     };
-  }, [data, focusWindow, wheelFocus, periodViewport, readViewport, fractalByTime, klineByTime, showBis, showCentralZones, showSignalZones, showSegments, showSignals, showCandidates, showFractals, signalPlacement]);
+  }, [data, wheelFocus, periodViewport, readViewport, fractalByTime, klineByTime, showBis, showSegments, showFractals]);
 
   return (
     <>
-      {onDrillDown && <section className="range-navigation" aria-label="区间下钻">
-        <strong>区间下钻</strong>
-        <label><input type="checkbox" checked={autoPeriod} onChange={(event) => setAutoPeriod(event.target.checked)} />滚轮自动切换周期</label>
-        <p>滚轮放大到阈值进入更细周期，缩小返回；围绕鼠标所指时间。A股自动切换跳过4h，可用下方选项手动选择。</p>
-        {targets.length ? <>
-          <button type="button" aria-pressed={picking} onClick={() => {
-            pickRef.current = { active: !picking, anchor: null };
-            setPicking(!picking);
-            if (!picking) { setRangeSelection(null); setSelected(null); }
-          }}>{picking ? '取消选取' : '在图上选起止'}</button>
-          <button type="button" onClick={() => chooseWindow(currentWindow())}>使用当前可见区间</button>
-          {selected && (selected.kind === 'bi' || selected.kind === 'segment' || selected.kind === 'centralZone' || selected.kind === 'signalZone') &&
-            <button type="button" onClick={() => chooseWindow(analysisWindow(selected.item.startTime, selected.item.endTime, data.period))}>使用选中{selected.kind === 'bi' ? '笔' : selected.kind === 'segment' ? '线段' : '中枢'}区间</button>}
-          <label>目标周期 <select aria-label="下钻目标周期" value={targetPeriod} onChange={(event) => setTargetPeriod(event.target.value as KlinePeriod)}>
-            {targets.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-          </select></label>
-          <button type="button" className="primary" disabled={!rangeSelection || picking} onClick={() => rangeSelection && onDrillDown(targetPeriod, rangeSelection, currentWindow())}>下钻分析</button>
-          <p role="status">{picking ? (rangeSelection ? '已选起点，请再点一根K线作为终点。' : '依次点击两根K线，确定起止日期（可反向选取）。') : rangeSelection ? `已选 ${rangeSelection.start} 至 ${rangeSelection.end}` : '点击一笔／线段后可使用其区间，也可选择当前可见范围。'} 按起止交易日期查看，包含两端整日。</p>
-          {targetPeriod === 'hour4' && <p>A股 4h 通常一天一根；查看日内细节可选 60m 或 30m。</p>}
-        </> : <p>已到最小支持周期 1m，可返回上一级对照。</p>}
-      </section>}
-    <div ref={shellRef} className={`chart-shell${picking ? ' is-picking-range' : ''}`}>
+        <label className="wheel-toggle"><input type="checkbox" checked={autoPeriod} onChange={(event) => setAutoPeriod(event.target.checked)} />滚轮自动切换周期</label>
+    <div ref={shellRef} className="chart-shell">
       {hoverKline && <KlineHoverPanel item={hoverKline} />}
       {selected && <ExplanationPanel selected={selected} onClose={() => setSelected(null)} />}
       <div className="chart-layer-controls">
-        <label><input type="checkbox" checked={showSignals} onChange={(event) => setShowSignals(event.target.checked)} /><span>买卖点</span></label>
-        <label><input type="checkbox" checked={showCandidates} onChange={(event) => setShowCandidates(event.target.checked)} /><span>候选点</span></label>
         <label><input type="checkbox" checked={showFractals} onChange={(event) => setShowFractals(event.target.checked)} /><span>分型</span></label>
-        <label><input type="checkbox" checked={showSignalZones} onChange={(event) => setShowSignalZones(event.target.checked)} /><span>信号中枢</span></label>
-        <select aria-label="买卖点显示位置" value={signalPlacement} onChange={(event) => setSignalPlacement(event.target.value as 'observed' | 'endpoint')}><option value="observed">确认时间</option><option value="endpoint">结构端点（事后）</option></select>
         <label>
           <input type="checkbox" checked={showBis} onChange={(event) => setShowBis(event.target.checked)} />
-          <span>笔</span>
+          <span>笔（蓝线）</span>
         </label>
         <label>
           <input type="checkbox" checked={showSegments} onChange={(event) => setShowSegments(event.target.checked)} />
-          <span>线段</span>
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            checked={showCentralZones}
-            onChange={(event) => setShowCentralZones(event.target.checked)}
-          />
-          <span>线段中枢</span>
+          <span>线段（红线）</span>
         </label>
       </div>
       <div className="chart-surface" ref={containerRef} />
-      {picking && <div className="range-pick-surface" title="点击K线选择起止日期" onClick={(event) => {
-        const chart = chartRef.current;
-        const bounds = containerRef.current?.getBoundingClientRect();
-        if (!chart || !bounds) return;
-        const time = chart.timeScale().coordinateToTime(event.clientX - bounds.left);
-        const bar = time ? klineByTime.get(formatChartTime(time)) : null;
-        if (!bar) return;
-        const first = pickRef.current.anchor;
-        setRangeSelection(analysisWindow(first ?? bar.time, bar.time, data.period));
-        if (first) {
-          pickRef.current = { active: false, anchor: null };
-          setPicking(false);
-        } else pickRef.current.anchor = bar.time;
-      }} />}
-      <div className="central-zone-layer">
-        {centralZoneRects.map(({ zone, signalZone, index, left, top, width, height }) => (
-          <div
-            key={`${signalZone?.id ?? 'segment'}-${zone.startTime}-${zone.endTime}-${zone.startSegmentIndex}`}
-            className={`central-zone-box ${signalZone ? 'signal-zone-box' : ''} ${zone.status === 'EXTENDING' ? 'extending' : 'left'}`}
-            style={{ left, top, width, height }}
-            onClick={() => setSelected(signalZone ? { kind: 'signalZone', item: signalZone } : { kind: 'centralZone', item: zone })}
-            onMouseMove={(event) => {
-              const chart = chartRef.current;
-              const chartRect = containerRef.current?.getBoundingClientRect();
-              if (!chart || !chartRect) {
-                return;
-              }
-              const time = chart.timeScale().coordinateToTime(event.clientX - chartRect.left);
-              setHoverKline(time ? klineByTime.get(formatChartTime(time)) ?? null : null);
-            }}
-            onMouseLeave={() => setHoverKline(null)}
-          >
-            <button
-              type="button"
-              className="central-zone-label"
-              aria-label={`查看中枢 ${index + 1} 判定`}
-            >
-              {signalZone ? signalZone.level === 'bi' ? '笔级' : '线段级' : '线段'}中枢 {index + 1} ZG {formatPrice(zone.zg)} / ZD {formatPrice(zone.zd)}
-            </button>
-          </div>
-        ))}
-      </div>
-      <div className="macd-legend">MACD · DIF 蓝线 / DEA 橙线 / 柱面积用于同向动能比较；不足预热长度不判断背驰</div>
+      <div className="macd-caption">MACD（12, 26, 9） · DIF 蓝线 · DEA 橙线</div>
       <div className="macd-surface" ref={macdRef} />
     </div>
     </>
@@ -599,46 +413,6 @@ function KlineHoverPanel({ item }: { item: HoverKline }) {
 }
 
 function ExplanationPanel({ selected, onClose }: { selected: Exclude<SelectedExplanation, null>; onClose: () => void }) {
-  if (selected.kind === 'tradingPoint') {
-    return <div className="explanation-panel"><button type="button" className="explanation-close" onClick={onClose} aria-label="关闭说明">×</button>
-      {selected.item.map((point) => <section key={point.id}><h3>{pointLabel(point.type)} · {pointSource(point)} · {point.confirmed ? '模型确认' : '候选'}</h3>
-        <p>端点：{formatDisplayTime(point.time)} / {formatPrice(point.price)}<br />确认 / 观察：{formatDisplayTime(point.observedAt)}<br />失效参考价：{formatPrice(point.invalidationPrice)}</p>
-        <ReasonList reasons={point.reasons} /><p>中枢：{point.zoneIds.join('、')}<br />依赖：{point.parentId ?? point.divergenceId ?? '离开与回试结构'}</p></section>)}
-    </div>;
-  }
-  if (selected.kind === 'signalZone') {
-    const zone = selected.item;
-    return <div className="explanation-panel"><button type="button" className="explanation-close" onClick={onClose} aria-label="关闭说明">×</button><h3>{zone.level === 'bi' ? '笔级' : '线段级'}信号中枢</h3>
-      <p>核心：{formatPrice(zone.zd)} / {formatPrice(zone.zg)}<br />包络：{formatPrice(zone.dd)} / {formatPrice(zone.gg)}<br />形成可知时间：{formatDisplayTime(zone.formedAt)}<br />关闭可知时间：{zone.closedAt ? formatDisplayTime(zone.closedAt) : '延伸中'}<br />成员序号：{zone.memberIndices.map((i) => i + 1).join('、')}</p><p>连续至少三个已确认同层单元的严格交集；核心固定，确认外侧回试后关闭并剔除离开连接单元。买卖点引用此ID：{zone.id}</p>
-    </div>;
-  }
-  if (selected.kind === 'centralZone') {
-    const item = selected.item;
-    return (
-      <div className="explanation-panel central-zone-explanation-panel">
-        <button type="button" className="explanation-close" onClick={onClose} aria-label="关闭说明">
-          ×
-        </button>
-        <h3>线段级中枢判定</h3>
-        <div className="explanation-meta">
-          <span>{formatDisplayTime(item.startTime)} 至 {formatDisplayTime(item.endTime)}</span>
-          <span>{item.segmentCount} 段</span>
-          <span>{formatCentralZoneStatus(item.status)}</span>
-        </div>
-        <div className="explanation-meta">
-          <span>ZD {formatPrice(item.zd)}</span>
-          <span>ZG {formatPrice(item.zg)}</span>
-          <span>DD {formatPrice(item.dd)}</span>
-          <span>GG {formatPrice(item.gg)}</span>
-        </div>
-        <div className="explanation-meta">
-          <span>组成线段 {formatSegmentIndices(item.sourceSegmentIndices)}</span>
-        </div>
-        <ReasonList reasons={item.reasons} />
-      </div>
-    );
-  }
-
   if (selected.kind === 'fractal') {
     const item = selected.item;
     return (
@@ -685,7 +459,6 @@ function ExplanationPanel({ selected, onClose }: { selected: Exclude<SelectedExp
           </table>
         )}
         <ReasonList reasons={item.reasons} />
-        {item.strength && <><h4>分型强弱：{strengthLabel(item.strength.grade)}</h4><ReasonList reasons={item.strength.reasons} /></>}
       </div>
     );
   }
@@ -702,8 +475,8 @@ function ExplanationPanel({ selected, onClose }: { selected: Exclude<SelectedExp
           <span>{formatDisplayTime(item.startTime)} 至 {formatDisplayTime(item.endTime)}</span>
           <span>{formatPrice(item.startPrice)} 至 {formatPrice(item.endPrice)}</span>
           <span>{item.biCount} 笔</span>
-          <span>{item.confirmed ? '已确认' : '未确认'}</span>
-          <span>{formatBreakType(item.breakType)}</span>
+          <span>{item.confirmed ? '终点已确认' : '终点待定'}</span>
+          {item.confirmed && <span>{formatBreakType(item.breakType)}</span>}
         </div>
         {item.featureSequence.length > 0 && (
           <table className="feature-sequence-table">
@@ -730,7 +503,6 @@ function ExplanationPanel({ selected, onClose }: { selected: Exclude<SelectedExp
           </table>
         )}
         <ReasonList reasons={item.reasons} />
-        <MomentumPanel item={item.momentum} />
       </div>
     );
   }
@@ -745,22 +517,11 @@ function ExplanationPanel({ selected, onClose }: { selected: Exclude<SelectedExp
       <div className="explanation-meta">
         <span>{formatDisplayTime(item.startTime)} 至 {formatDisplayTime(item.endTime)}</span>
         <span>{formatPrice(item.startPrice)} 至 {formatPrice(item.endPrice)}</span>
-        <span>{item.confirmed ? '已确认' : '未确认'}</span>
+        <span>{item.confirmed ? '终点已确认' : '终点待定'}</span>
       </div>
       <ReasonList reasons={item.reasons} />
-      <MomentumPanel item={item.momentum} />
     </div>
   );
-}
-
-function MomentumPanel({ item }: { item: Momentum | null }) {
-  if (!item) return null;
-  return <div className="momentum-panel"><h4>动能：{strengthLabel(item.grade)}</h4><p>{item.barCount} 根K线 · 幅度 {item.amplitudePercent.toFixed(2)}% · 每根速度 {item.velocity.toFixed(3)}%<br />MACD同向面积 {item.macdArea.toFixed(4)} / 峰值 {item.macdPeak.toFixed(4)}<br />前同向面积比 {item.relativeArea?.toFixed(3) ?? '无法比较'} · {item.warmupComplete ? '预热完成' : '预热不足'}<br />成交量 {formatVolume(item.volumeSum)}</p><p>强弱为同向动能比较，不是胜率。</p></div>;
-}
-
-function displaySignalZone(zone: SignalZone): CentralZone {
-  return { ...zone, startSegmentIndex: zone.startUnitIndex, endSegmentIndex: zone.endUnitIndex,
-    segmentCount: zone.memberIndices.length, sourceSegmentIndices: zone.memberIndices, reasons: [] };
 }
 
 function ReasonList({ reasons }: { reasons: string[] }) {
@@ -798,56 +559,6 @@ function findNearestLine<T extends Bi | Segment>(
     }
   }
   return nearest?.line ?? null;
-}
-
-function findCentralZone(
-  zones: CentralZone[],
-  point: { x: number; y: number },
-  chart: ReturnType<typeof createChart>,
-  candleSeries: ReturnType<ReturnType<typeof createChart>['addCandlestickSeries']>,
-  firstKlineTime?: string,
-  lastKlineTime?: string,
-): CentralZone | null {
-  for (const zone of [...zones].reverse()) {
-    const bounds = centralZoneBounds(zone, chart, candleSeries, firstKlineTime, lastKlineTime);
-    if (
-      bounds
-      && point.x >= bounds.left - 4
-      && point.x <= bounds.left + bounds.width + 4
-      && point.y >= bounds.top - 4
-      && point.y <= bounds.top + bounds.height + 4
-    ) {
-      return zone;
-    }
-  }
-  return null;
-}
-
-function centralZoneBounds(
-  zone: CentralZone,
-  chart: ReturnType<typeof createChart>,
-  candleSeries: ReturnType<ReturnType<typeof createChart>['addCandlestickSeries']>,
-  firstKlineTime?: string,
-  lastKlineTime?: string,
-): { left: number; top: number; width: number; height: number } | null {
-  if (!firstKlineTime || !lastKlineTime) {
-    return null;
-  }
-  const visibleStartTime = zone.startTime < firstKlineTime ? firstKlineTime : zone.startTime;
-  const visibleEndTime = zone.endTime > lastKlineTime ? lastKlineTime : zone.endTime;
-  const startX = chart.timeScale().timeToCoordinate(toChartTime(visibleStartTime));
-  const endX = chart.timeScale().timeToCoordinate(toChartTime(visibleEndTime));
-  const topY = candleSeries.priceToCoordinate(zone.zg);
-  const bottomY = candleSeries.priceToCoordinate(zone.zd);
-  if (startX === null || endX === null || topY === null || bottomY === null) {
-    return null;
-  }
-  return {
-    left: Math.min(startX, endX),
-    top: Math.min(topY, bottomY),
-    width: Math.max(2, Math.abs(endX - startX)),
-    height: Math.max(2, Math.abs(bottomY - topY)),
-  };
 }
 
 function distanceToSegment(point: { x: number; y: number }, start: { x: number; y: number }, end: { x: number; y: number }) {
@@ -915,21 +626,8 @@ function formatBiIndices(indices: number[]): string {
   return indices.map((index) => index + 1).join('、');
 }
 
-function formatSegmentIndices(indices: number[]): string {
-  return indices.map((index) => index + 1).join('、');
-}
-
-function formatCentralZoneStatus(status: CentralZone['status']): string {
-  if (status === 'LEFT_UP') {
-    return '向上离开';
-  }
-  if (status === 'LEFT_DOWN') {
-    return '向下离开';
-  }
-  return '延伸中';
-}
-
 function formatBreakType(type: Segment['breakType']): string {
+  if (type === 'PIVOT_BREAK') return '反向笔突破前高／前低';
   if (type === 'NO_GAP') {
     return '无缺口确认';
   }

@@ -120,3 +120,26 @@ def test_initial_overlap_without_directional_extension_does_not_seed_wrong_segme
         assert result[0].end_price==sign*59.54
         for endpoint in (10,9):
             assert SegmentAnalyzer().build_segments(make_bis([sign*v for v in [1,10,5,endpoint]]))==[]
+
+
+def test_lesson_71_paths_and_strict_touch():
+    for sign in (1, -1):
+        def segments(tail):
+            points = [10, 15, 12, 18, 14, 20, 13, 19] + tail
+            return SegmentAnalyzer().build_segments(make_bis([sign * price for price in points]))
+
+        for tail in ([], [13], [15], [15, 18]):
+            assert not segments(tail)[0].confirmed
+        for tail in ([12], [15, 18, 12]):
+            assert segments(tail)[0].confirmed
+            assert segments(tail)[0].end_price == sign * 20
+        assert not segments([15, 21])[0].confirmed
+        assert segments([15, 21])[0].end_price == sign * 21
+
+
+def test_seed_requires_both_high_and_low_to_advance():
+    for sign in (1, -1):
+        for low in (9, 10):
+            assert not SegmentAnalyzer().build_segments(make_bis([sign * p for p in (10, 15, low, 18)]))
+
+

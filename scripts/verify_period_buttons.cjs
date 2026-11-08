@@ -13,7 +13,7 @@ let browser;
   const errors=[], requests=[], stages=[]; let payload;
   page.on('pageerror', e=>errors.push(e.message));
   page.on('response', async response=> {
-    if (/\/structure\/chart\?/.test(response.url()) && response.ok()) { payload = await response.json(); requests.push(response.url()); }
+    if (/\/chart\?/.test(response.url()) && response.ok()) { payload = await response.json(); requests.push(response.url()); }
   });
   await page.route('**/node_modules/.vite/deps/lightweight-charts.js*', async route=> {
     const response=await route.fetch({url:route.request().url().replace('localhost','127.0.0.1')});
@@ -25,24 +25,22 @@ let browser;
   async function ready(period){await page.waitForFunction(p=>document.querySelector('.chart-band')?.getAttribute('aria-busy')==='false' && document.querySelector('.chart-status strong')?.textContent?.includes(p),period,{timeout:180000}); await page.waitForTimeout(200);}
   async function verify(stage) {
     const actual=await page.evaluate(()=> {
-      const [main,macd]=window.__charts.filter(x=>!x.removed); if(!main)return null;
+      const [main]=window.__charts.filter(x=>!x.removed); if(!main)return null;
       const candles=main.series.find(x=>x.method==='addCandlestickSeries').rows.filter(x=>'open' in x);
-      const indicators=macd.series.find(x=>x.method==='addHistogramSeries').rows.filter(x=>'value' in x);
-      return {candles,indicators,main:main.chart.timeScale().getVisibleRange(),macd:macd.chart.timeScale().getVisibleRange(),delta:Math.max(0,...candles.map(x=>Math.abs(main.chart.timeScale().timeToCoordinate(x.time)-macd.chart.timeScale().timeToCoordinate(x.time))))};
+      return {candles,main:main.chart.timeScale().getVisibleRange()};
     });
-    assert(actual);assert.deepEqual(actual.main,actual.macd);assert(actual.delta<.5);
+    assert(actual?.main);
     const time=t=>t.includes('T')?Date.parse(t+'Z')/1000:t;
     assert.deepEqual(actual.candles,payload.klines.map(k=>({time:time(k.time),open:k.open,high:k.high,low:k.low,close:k.close})));
-    assert.deepEqual(actual.indicators,payload.indicators.map(k=>({time:time(k.time),value:k.histogram,color:k.histogram>=0?'#dc2626':'#047857'})));
-    stages.push({stage,period:payload.period,count:actual.candles.length,range:actual.main,pixelDelta:actual.delta});
+    stages.push({stage,period:payload.period,count:actual.candles.length,range:actual.main});
     console.log(JSON.stringify(stages.at(-1)));
   }
 
 
-  await page.goto('http://localhost:5173');await ready('日K');
+  await page.goto('http://localhost:5173'); await ready('日K');
   const stamp=t=>Date.parse(t+'Z')/1000;
   async function select(label,period) {
-    const response=page.waitForResponse(r=>r.url().includes('/structure/chart?')&&new URL(r.url()).searchParams.get('period')===period);
+    const response=page.waitForResponse(r=>r.url().includes('/chart?')&&new URL(r.url()).searchParams.get('period')===period);
     await page.locator('.period-control').getByRole('button',{name:label,exact:true}).click();
     await response;await ready(label);
   }
@@ -79,12 +77,12 @@ let browser;
   }
   // Failed requests leave both the chosen period and the rendered data unchanged.
   const before=await page.evaluate(()=>window.__charts.filter(x=>!x.removed)[0].series.find(x=>x.method==='addCandlestickSeries').rows);
-  await page.route('**/api/stocks/*/structure/chart?*',route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({detail:'按钮切换错误验证'})}));
+  await page.route('**/api/stocks/*/chart?*',route=>route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({detail:'按钮切换错误验证'})}));
   await page.locator('.period-control').getByRole('button',{name:'周K',exact:true}).click();
   await page.locator('.status-line').filter({hasText:'周期切换失败，已保留原图'}).waitFor();
   assert.equal(await page.locator('.period-control button.active').innerText(),'月K');
   assert.deepEqual(await page.evaluate(()=>window.__charts.filter(x=>!x.removed)[0].series.find(x=>x.method==='addCandlestickSeries').rows),before);
-  await page.unroute('**/api/stocks/*/structure/chart?*');stages.push({stage:'button-failure-keeps-chart'});
+  await page.unroute('**/api/stocks/*/chart?*');stages.push({stage:'button-failure-keeps-chart'});
   await page.setViewportSize({width:800,height:1000});await select('日K','daily');await readable('narrow-screen-adapts');
   await page.locator('.chart-status').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(outputDir,'period-buttons.png')});
   assert.deepEqual(errors,[]);

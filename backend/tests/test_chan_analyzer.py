@@ -28,16 +28,15 @@ def test_detects_fractals_and_builds_bis() -> None:
         make_kline(8, 11, 9),
     ]
 
-    fractals, bis, segments, central_zones = ChanAnalyzer().analyze(klines, min_kline_gap=3)
+    fractals, bis, segments = ChanAnalyzer().analyze(klines, min_kline_gap=3)
 
     assert [item.type for item in fractals] == [FractalType.TOP, FractalType.BOTTOM, FractalType.TOP]
     # The top at index 7 uses the mutable last candle as its right support.
     assert len(bis) == 1
     assert segments == []
-    assert central_zones == []
     assert bis[0].direction == "DOWN"
     assert bis[-1].confirmed is False
-    _, frozen_bis, _, _ = ChanAnalyzer().analyze(klines + [make_kline(9, 10, 8)], min_kline_gap=3)
+    _, frozen_bis, _ = ChanAnalyzer().analyze(klines + [make_kline(9, 10, 8)], min_kline_gap=3)
     assert len(frozen_bis)==2 and frozen_bis[0].confirmed
     assert frozen_bis[1].direction=="UP" and not frozen_bis[1].confirmed
 

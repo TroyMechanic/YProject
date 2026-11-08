@@ -29,7 +29,7 @@ def compare(left, right):
         'sameEngine': left['analysis']['engineHash'] == right['analysis']['engineHash'],
         'before': left['analysis'], 'after': right['analysis'], 'changes': {},
     }
-    for key in ['fractals', 'bis', 'segments', 'centralZones', 'signalZones', 'divergences', 'tradingPoints', 'zoneRelations']:
+    for key in ['fractals', 'bis', 'segments']:
         # Reasons may change wording without changing the geometric result.
         previous = {json.dumps({k:v for k,v in item.items() if k != 'reasons'}, sort_keys=True, ensure_ascii=False) for item in left.get(key,[])}
         current = {json.dumps({k:v for k,v in item.items() if k != 'reasons'}, sort_keys=True, ensure_ascii=False) for item in right.get(key,[])}

@@ -174,23 +174,9 @@ def test_compare_tool_reports_same_input_profile_differences(service):
     assert len(report['changes']['bis']['removed'])==1
 
 
-def test_research_settings_survive_sync_and_exports_exist(service, monkeypatch):
-    before=service.recalculate('DEMO',KlinePeriod.DAILY,signal_level='segment',divergence_ratio=.65,
-                               macd_fast=3,macd_slow=7,macd_signal=4,zero_axis_tolerance=.02)
-    monkeypatch.setattr(service.market_data,'fetch',lambda *args:bars([(10,7)]))
-    service.sync('DEMO',KlinePeriod.DAILY,None,None)
-    after=service.get_chart('DEMO',KlinePeriod.DAILY,None,None)
-    assert after.analysis.settings==before.analysis.settings
-    assert after.trend.level.value=='segment'
-    for suffix in ['indicators','signal_zones','divergences','trading_points','zone_relations','momentum','fractal_strength']:
-        assert (service.store.analyzed_dir/f'DEMO_daily_{suffix}.csv').exists()
-
-
 def test_v2_snapshot_migration_checks_original_shape_and_preserves_settings(service):
     chart=service.recalculate('DEMO',KlinePeriod.DAILY,5,RuleProfile.SEPARATED)
     payload=chart.model_dump(mode='json',by_alias=True)
-    for key in ['indicators','signalZones','zoneRelations','divergences','tradingPoints','trend']:
-        payload.pop(key)
     for item in payload['fractals']: item.pop('strength',None)
     for item in payload['bis']:
         item.pop('momentum',None);item.pop('confirmedAt',None)
@@ -204,7 +190,7 @@ def test_v2_snapshot_migration_checks_original_shape_and_preserves_settings(serv
     metadata['resultHash']=digest({k:v for k,v in payload.items() if k!='analysis'})
     service.store._analysis_path('DEMO',KlinePeriod.DAILY).write_text(json.dumps(payload))
     migrated=service.get_chart('DEMO',KlinePeriod.DAILY,None,None)
-    assert migrated.analysis.rule_version=='4.3.1' and migrated.analysis.run_id!=chart.analysis.run_id
+    assert migrated.analysis.rule_version=='5.1.0' and migrated.analysis.run_id!=chart.analysis.run_id
     assert migrated.analysis.settings.rule_profile==RuleProfile.SEPARATED
-    assert migrated.analysis.settings.min_kline_gap==5 and migrated.analysis.settings.signal_level.value=='bi'
-    assert len(migrated.indicators)==len(migrated.klines)
+    assert migrated.analysis.settings.min_kline_gap==5
+    assert 'indicators' not in migrated.model_dump()

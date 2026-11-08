@@ -7,7 +7,7 @@ from tempfile import NamedTemporaryFile
 
 import pandas as pd
 
-from app.models.schemas import Bi, CentralZone, ChartResponse, Fractal, Kline, KlinePeriod, Segment
+from app.models.schemas import Bi, ChartResponse, Fractal, Kline, KlinePeriod, Segment
 from app.services.market_data_service import is_intraday_period
 
 
@@ -40,15 +40,13 @@ class CsvStore:
         path = self._analysis_path(symbol, period)
         if not path.exists():
             return None
-        return json.loads(path.read_text())
+        return json.loads(path.read_text(encoding="utf-8"))
 
     def save_analysis(self, chart: ChartResponse) -> None:
         # CSVs remain human-readable exports. API reads one atomic committed bundle.
         self.save_fractals(chart.symbol, chart.period, chart.fractals)
         self.save_bis(chart.symbol, chart.period, chart.bis)
         self.save_segments(chart.symbol, chart.period, chart.segments)
-        self.save_central_zones(chart.symbol, chart.period, chart.central_zones)
-        self.save_research(chart)
         path = self._analysis_path(chart.symbol, chart.period)
         archive = self.analyzed_dir / "runs" / f"{safe_symbol(chart.symbol)}_{safe_period(chart.period)}"
         archive.mkdir(parents=True, exist_ok=True)
@@ -75,28 +73,6 @@ class CsvStore:
     def _analysis_path(self, symbol: str, period: KlinePeriod) -> Path:
         return self.analyzed_dir / f"{safe_symbol(symbol)}_{safe_period(period)}_analysis.json"
 
-    def save_research(self, chart: ChartResponse) -> None:
-        prefix=f"{safe_symbol(chart.symbol)}_{safe_period(chart.period)}"
-        collections={"indicators":chart.indicators,"signal_zones":chart.signal_zones,
-                     "divergences":chart.divergences,"trading_points":chart.trading_points,
-                     "zone_relations":chart.zone_relations}
-        for name,collection in collections.items():
-            rows=[]
-            for item in collection:
-                values=item.model_dump(mode="json",by_alias=True)
-                rows.append({key:json.dumps(value,ensure_ascii=False) if isinstance(value,(dict,list)) else value
-                             for key,value in values.items()})
-            self._atomic_write(self.analyzed_dir/f"{prefix}_{name}.csv",pd.DataFrame(rows))
-        rows=[]
-        for level,collection in (("bi",chart.bis),("segment",chart.segments)):
-            rows.extend({"level":level,"index":index,"startTime":item.start_time,"endTime":item.end_time,
-                         **item.momentum.model_dump(by_alias=True)}
-                        for index,item in enumerate(collection) if item.momentum is not None)
-        self._atomic_write(self.analyzed_dir/f"{prefix}_momentum.csv",pd.DataFrame(rows))
-        rows=[{"time":f.time,"type":f.type.value,"grade":f.strength.grade,
-               "reasons":json.dumps(f.strength.reasons,ensure_ascii=False)} for f in chart.fractals if f.strength]
-        self._atomic_write(self.analyzed_dir/f"{prefix}_fractal_strength.csv",pd.DataFrame(rows))
-
     def load_klines(
         self,
         symbol: str,
@@ -105,10 +81,18 @@ class CsvStore:
         end_date: date | None = None,
     ) -> list[Kline]:
         path = self._kline_path(symbol, period)
-        if not path.exists():
-            return []
-
-        df = pd.read_csv(path, parse_dates=["trade_date"])
+        if path.exists() and path.stat().st_size > 1:
+            df = pd.read_csv(path, parse_dates=["trade_date"])
+        else:
+            df = self._empty_kline_frame()
+        if symbol == "000001.SH" and period != KlinePeriod.MINUTE_1:
+            minute_path = self._kline_path(symbol, KlinePeriod.MINUTE_1)
+            if minute_path.exists():
+                derived = self._index_period_bars(minute_path, period)
+                df = (pd.concat([derived, df], ignore_index=True) if not df.empty else derived)
+                buckets = {KlinePeriod.WEEKLY: "W-FRI", KlinePeriod.MONTHLY: "M"}
+                key = df.trade_date.dt.to_period(buckets[period]) if period in buckets else df.trade_date
+                df = df.loc[~key.duplicated(keep="last")]
         if df.empty:
             return []
 
@@ -120,11 +104,35 @@ class CsvStore:
                 high=float(row.high),
                 low=float(row.low),
                 close=float(row.close),
-                volume=float(row.volume or 0),
+                volume=float(row.volume) if pd.notna(row.volume) else 0,
                 amount=float(row.amount or 0),
             )
             for row in df.itertuples(index=False)
         ]
+
+    @staticmethod
+    def _index_period_bars(minute_path: Path, period: KlinePeriod) -> pd.DataFrame:
+        bars = pd.read_csv(minute_path, parse_dates=["trade_date"]).sort_values("trade_date")
+        stamps = bars.trade_date
+        day = stamps.dt.normalize()
+        sizes = {KlinePeriod.MINUTE_5: 5, KlinePeriod.MINUTE_30: 30, KlinePeriod.MINUTE_60: 60}
+        if period in sizes:
+            # End-labelled bars. Anchor each morning / afternoon session independently.
+            minutes = stamps.dt.hour * 60 + stamps.dt.minute
+            afternoon = minutes > 720
+            offset = minutes - afternoon.map({False: 570, True: 780}) - 1
+            groups = [day, afternoon, offset // sizes[period]]
+        elif period in (KlinePeriod.WEEKLY, KlinePeriod.MONTHLY):
+            groups = stamps.dt.to_period("W-FRI" if period == KlinePeriod.WEEKLY else "M")
+        else:
+            groups = day
+        result = bars.groupby(groups, sort=True).agg(
+            trade_date=("trade_date", "last"), open=("open", "first"), high=("high", "max"),
+            low=("low", "min"), close=("close", "last"), volume=("volume", "sum"), amount=("amount", "sum"),
+        ).reset_index(drop=True)
+        if not is_intraday_period(period):
+            result["trade_date"] = result.trade_date.dt.normalize()
+        return result
 
     def upsert_klines(self, symbol: str, period: KlinePeriod, klines: list[Kline]) -> int:
         path = self._kline_path(symbol, period)
@@ -357,78 +365,6 @@ class CsvStore:
             for row in df.itertuples(index=False)
         ]
 
-    def save_central_zones(self, symbol: str, period: KlinePeriod, zones: list[CentralZone]) -> None:
-        columns = [
-            "start_date",
-            "end_date",
-            "zd",
-            "zg",
-            "dd",
-            "gg",
-            "start_segment_index",
-            "end_segment_index",
-            "segment_count",
-            "status",
-            "source_segment_indices",
-            "reasons",
-        ]
-        frame = pd.DataFrame(
-            [
-                {
-                    "start_date": item.start_time,
-                    "end_date": item.end_time,
-                    "zd": item.zd,
-                    "zg": item.zg,
-                    "dd": item.dd,
-                    "gg": item.gg,
-                    "start_segment_index": item.start_segment_index,
-                    "end_segment_index": item.end_segment_index,
-                    "segment_count": item.segment_count,
-                    "status": item.status.value,
-                    "source_segment_indices": json.dumps(item.source_segment_indices),
-                    "reasons": json.dumps(item.reasons, ensure_ascii=False),
-                }
-                for item in zones
-            ],
-            columns=columns,
-        )
-        self._atomic_write(self._central_zone_path(symbol, period), frame)
-
-    def load_central_zones(
-        self,
-        symbol: str,
-        period: KlinePeriod = KlinePeriod.DAILY,
-        start_date: date | None = None,
-        end_date: date | None = None,
-    ) -> list[CentralZone]:
-        path = self._central_zone_path(symbol, period)
-        if not path.exists() or path.stat().st_size <= 1:
-            return []
-        df = pd.read_csv(path, parse_dates=["start_date", "end_date"])
-        if df.empty:
-            return []
-        if start_date:
-            df = df[df["end_date"].dt.date >= start_date]
-        if end_date:
-            df = df[df["start_date"].dt.date <= end_date]
-        return [
-            CentralZone(
-                startTime=self._to_period_time(row.start_date, period),
-                endTime=self._to_period_time(row.end_date, period),
-                zd=float(row.zd),
-                zg=float(row.zg),
-                dd=float(row.dd),
-                gg=float(row.gg),
-                startSegmentIndex=int(row.start_segment_index),
-                endSegmentIndex=int(row.end_segment_index),
-                segmentCount=int(row.segment_count),
-                status=row.status,
-                sourceSegmentIndices=self._parse_int_list(row.source_segment_indices),
-                reasons=self._parse_reasons(row.reasons),
-            )
-            for row in df.itertuples(index=False)
-        ]
-
     def _kline_path(self, symbol: str, period: KlinePeriod) -> Path:
         return self.raw_dir / f"{safe_symbol(symbol)}_{safe_period(period)}.csv"
 
@@ -443,10 +379,6 @@ class CsvStore:
     def _segment_path(self, symbol: str, period: KlinePeriod) -> Path:
         suffix = "" if period == KlinePeriod.DAILY else f"_{safe_period(period)}"
         return self.analyzed_dir / f"{safe_symbol(symbol)}{suffix}_segments.csv"
-
-    def _central_zone_path(self, symbol: str, period: KlinePeriod) -> Path:
-        suffix = "" if period == KlinePeriod.DAILY else f"_{safe_period(period)}"
-        return self.analyzed_dir / f"{safe_symbol(symbol)}{suffix}_central_zones.csv"
 
     @staticmethod
     def _filter_date_range(df: pd.DataFrame, start_date: date | None, end_date: date | None) -> pd.DataFrame:

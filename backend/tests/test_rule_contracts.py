@@ -23,11 +23,11 @@ def test_hand_checked_rule_baseline(profile):
     fixture = json.loads((Path(__file__).parent / 'fixtures/rule_baseline.json').read_text())
     assert fixture['ruleVersion'] == RULE_VERSION
     settings = RuleSettings(ruleProfile=profile)
-    fractals, bis, segments, zones = ChanAnalyzer().analyze(bars(fixture['ranges']), effective_gap(settings))
+    fractals, bis, segments = ChanAnalyzer().analyze(bars(fixture['ranges']), effective_gap(settings))
     actual = {
         'fractals': [[f.kline_index, f.type.value, f.price] for f in fractals],
         'bis': [[b.start_index, b.end_index, b.start_price, b.end_price, b.direction.value, b.confirmed] for b in bis],
-        'segments': len(segments), 'centralZones': len(zones),
+        'segments': len(segments),
     }
     assert actual == fixture['expected'][profile.value]
 
@@ -104,7 +104,7 @@ def test_seeded_histories_preserve_stroke_continuity_and_confirmed_prefix():
         for gap in [1,4]:
             previous = []
             for n in range(3, len(source)+1):
-                _, bis, _, _ = ChanAnalyzer().analyze(source[:n], gap)
+                _, bis, _ = ChanAnalyzer().analyze(source[:n], gap)
                 for left, right in zip(bis, bis[1:]):
                     assert (left.end_time, left.end_price, left.end_index) == (right.start_time, right.start_price, right.start_index)
                     assert left.direction != right.direction
